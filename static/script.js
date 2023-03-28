@@ -160,7 +160,6 @@ function addPeriodToTask() {
   dragAndDrop();
 }
 
-
 function menu() {
   $(document).on("contextmenu", ".period", function (e) {
     e.preventDefault();
