@@ -2,9 +2,14 @@ from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
 from .models import Task, Period
+<<<<<<< HEAD
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
+=======
+# from django.views.decorators.csrf import csrf_exempt
+# from django.utils.decorators import method_decorator
+>>>>>>> 5d42a6d899f9dac447b1222b6fc1f4f1b9a56dfb
 
 # Create your views here.
 class HomeView(View):
@@ -21,13 +26,24 @@ class ReadDatabaseView(View):
                 'name': task.name,
                 'position': task.position,
             })
+<<<<<<< HEAD
         return JsonResponse({'tasks': task_list})   
+=======
+        return JsonResponse({'tasks': task_list})
+      
+    
+    
+      
+
+
+>>>>>>> 5d42a6d899f9dac447b1222b6fc1f4f1b9a56dfb
 
 class PeriodCreateView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super(PeriodCreateView, self).dispatch(request, *args, **kwargs)
 
+<<<<<<< HEAD
     def post(self, request, *args, **kwargs):
         data = request.POST
         name = data.get('name', '') # vacio por defecto
@@ -37,10 +53,40 @@ class PeriodCreateView(View):
         task_id = data.get('task_id', '')
         task = Task.objects.get(id=task_id)
         period = Period(name=name, color=color, start=start, end=end, task_id=task.id)
+=======
+    
+    
+    
+    
+    
+    
+>>>>>>> 5d42a6d899f9dac447b1222b6fc1f4f1b9a56dfb
 
         period.save()
 
+<<<<<<< HEAD
         return JsonResponse({'status': 'success', 'message': 'Period created successfully!'})
+=======
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# @method_decorator(csrf_exempt, name='dispatch')
+# class CreateTasksView(View):
+#     @method_decorator(csrf_exempt)
+#     def dispatch(self, request, *args, **kwargs):
+#         return super().dispatch(request, *args, **kwargs)
+>>>>>>> 5d42a6d899f9dac447b1222b6fc1f4f1b9a56dfb
 
 class GetPeriodsFromDBView(View):
     def get(self, request):
