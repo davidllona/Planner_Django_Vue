@@ -1,9 +1,10 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.views import View
-from .models import Task
-# from django.views.decorators.csrf import csrf_exempt
-# from django.utils.decorators import method_decorator
+from .models import Task, Period
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+import json
 
 # Create your views here.
 class HomeView(View):
@@ -12,7 +13,7 @@ class HomeView(View):
     
 class ReadDatabaseView(View):
     def get(self, request):
-        tasks = Task.objects.all()
+        tasks = Task.objects.all().order_by('id')
         task_list = []
         for task in tasks:
             task_list.append({
@@ -20,91 +21,81 @@ class ReadDatabaseView(View):
                 'name': task.name,
                 'position': task.position,
             })
-        return JsonResponse({'tasks': task_list})    
-    
-from django.http import JsonResponse
-from django.views import View
-from .models import Task, Period
+        return JsonResponse({'tasks': task_list})   
 
+class PeriodCreateView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(PeriodCreateView, self).dispatch(request, *args, **kwargs)
 
-# @method_decorator(csrf_exempt, name='dispatch')
-    
-    
-    
-    
-    
-    
+    def post(self, request, *args, **kwargs):
+        data = request.POST
+        name = data.get('name', '') # vacio por defecto
+        color = data.get('color', 'blue') # blue por defecto
+        start = data.get('start', '')
+        end = data.get('end', start) # igual al start por defecto
+        task_id = data.get('task_id', '')
+        task = Task.objects.get(id=task_id)
+        period = Period(name=name, color=color, start=start, end=end, task_id=task.id)
 
+        period.save()
 
-# class CreateTasksView(View):
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, request, *args, **kwargs):
-#         return super().dispatch(request, *args, **kwargs)
+        return JsonResponse({'status': 'success', 'message': 'Period created successfully!'})
 
-#     def post(self, request):
-#         tasks = request.POST.getlist('tasks[]')
-#         for i, _ in enumerate(tasks):
-#             task = Task(name='', position=i)
-#             task.save()
-#         return JsonResponse({'success': True})
+class GetPeriodsFromDBView(View):
+    def get(self, request):
+        periods = Period.objects.all()
 
+        # Convertimos los perdios a una lista de diccionarios para que sean compatibles con JsonResponse
+        periods_result = []
+        for period in periods:
+            period_dict = {
+                'name': period.name,
+                'color': period.color,
+                'start': period.start.strftime('%Y-%m-%d'),
+                'end': period.end.strftime('%Y-%m-%d'),
+                'task_id': period.task.id,
 
-# class GetTasksFromDBView(View):
-#     def get(self, request):
-#         tasks = Period.objects.all().values() #Otra manera
+            }
 
-#         # Convertimos las filas a un diccionario para que sean compatibles con JsonResponse
-#         task_result = []
-#         for task in tasks:
-#             task = {
-#                 'id': task.id,
-#                 'name': task.name,
-#                 'color': task.color,
-#                 'start': task.start.strftime('%Y-%m-%d'),
-#                 'end': task.end.strftime('%Y-%m-%d'),
-#             }
-#             task_result.append(task)
-#         return JsonResponse({'tasks': task_result})
-    
-    # class CheckTaskExistsView(View):
-#     def get(self, request):
-#         start = request.GET.get('start')
-#         id_row = request.GET.get('id_row')
-#         task_exists = Period.objects.filter(start=start, id_row=id_row).exists()
-#         return JsonResponse({'exists': task_exists})
+            periods_result.append(period_dict)
 
-# class UpdateTaskNameView(View):
-#     @csrf_exempt
-#     def post(self, request):
-#         id_row = request.POST.get('id_row')
-#         taskRowName = request.POST.get('name')
-#         print(taskRowName)
-#         task_exists = Period.objects.filter(id_row=id_row).exists()
-#         if task_exists:
-#             task = Period.objects.get(id_row=id_row)
-#             task.name = taskRowName
-#             task.save()
-#             return JsonResponse({'message': 'Nombre de tarea actualizado correctamente'})
-#         else:
-#             return JsonResponse({'message': 'No se encontró la tarea con el id proporcionado'})
+        return JsonResponse({'periods': periods_result})
 
-# class AddTaskToDBView(View):
-#     @csrf_exempt
-#     def post(self, request):
-#         taskRowName = request.POST.get('name')  # obtenemos el nombre de la tarea
-#         color = request.POST.get('color')  # obtenemos el color de la tarea
-#         start = request.POST.get('start')  # obtenemos el inicio de la tarea
-#         end = request.POST.get('end')  # obtenemos el final de la tarea
-#         id_row = request.POST.get('id_row')  # obtenemos el final de la tarea
-#         # Conectamos a la base de datos
-#         conn = psycopg2.connect(dbname="taskOrganiser", user="david", password="Y4gueros", host="localhost", port="5432")
-#         # Creamos un cursor
-#         cur = conn.cursor()
-#         # Ejecutamos la consulta INSERT
-#         cur.execute('INSERT INTO task_tasks (name, color, start, "end", id_row) VALUES (%s, %s, %s, %s, %s)', (taskRowName, color, start, end, id_row))
-#         # Guardamos los cambios en la base de datos
-#         conn.commit()
-#         # Cerramos la conexión
-#         cur.close()
-#         conn.close()
-#         return JsonResponse({'message': 'Tarea agregada correctamente'})
+class UpdateTaskName(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(UpdateTaskName, self).dispatch(request, *args, **kwargs)
+    def post(self, request):
+        task_id = request.POST.get('id')
+        task_name = request.POST.get('name')
+        try:
+            task = Task.objects.get(id=task_id)
+            task.name = task_name
+            task.save()
+            message = f'Task name updated to {task_name}'
+            return JsonResponse({'message': message})
+        except Task.DoesNotExist:
+            message = f'Task with id {task_id} does not exist'
+            return JsonResponse({'message': message})
+        except Exception as e:
+            message = str(e)
+            return JsonResponse({'message': message})
+
+# class PeriodDeleteView(View):
+#     def delete(self, request, pk):
+#         period = get_object_or_404(Period, pk=pk)
+#         period.delete()
+#         message = f'Period eliminated'
+#         return JsonResponse({'message': message})
+
+class UpdatePeriodColor(View):
+    def post(self, request, pk):
+        try:
+            period = Period.objects.get(id=pk)
+            color = request.POST.get('color')
+            period.color = color
+            period.save()
+            return JsonResponse({'success': True})
+        except Period.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Period not found.'})

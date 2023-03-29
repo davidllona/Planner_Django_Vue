@@ -12,4 +12,4 @@ class Period(models.Model):
 class Task(models.Model):
      name=models.CharField(max_length=100, null=True)
      position=models.PositiveSmallIntegerField(null=False)
-    #ask_task (name,position) VALUES ('',0),('',1),('',2),('',3),('',4),('',5),('',6),('',7),('',8),('',9),('',10),('',11),('',12),('',13),('',14);
+    #INSERT INTO ask_task (name,position) VALUES ('',0),('',1),('',2),('',3),('',4),('',5),('',6),('',7),('',8),('',9),('',10),('',11),('',12),('',13),('',14);

@@ -1,0 +1,60 @@
+Not Found: /update-period-color/undefined/
+[29/Mar/2023 12:33:33] "POST /update-period-color/undefined/ HTTP/1.1" 404 3274class UpdatePeriodColor(View):
+    def post(self, request, pk):
+        try:
+            period = Period.objects.get(id=pk)
+            color = request.POST.get('color')
+            period.color = color
+            period.save()
+            return JsonResponse({'success': True})
+        except Period.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Period not found.'})               $(document).on("contextmenu", ".period", function (e) {
+    e.preventDefault();
+    let period = $(this);
+    let menu = $("#context-menu");
+    menu.data("task", period);
+    menu
+      .find("#color-picker")
+      .off()
+      .on("change", function () {
+        let color = $(this).val();
+        $.ajax({
+          url: `/update-period-color/${period.data("data-id")}/`,
+          method: 'POST',
+          data: {'color': color},
+          success: function () {
+            period.css("background-color", color);
+            $("#context-menu").hide();
+          },
+          error: function () {
+            alert('Error al actualizar el color del período');
+            console.log(period.data("data-id"))
+          }
+        });
+      });
+    menu.css({ left: e.pageX, top: e.pageY });
+    menu.show();
+  });from django.db import models
+
+# Create your models here.
+class Period(models.Model):
+     name=models.CharField(max_length=100)
+     color=models.CharField(max_length=7, default="blue")
+     start=models.DateField()
+     end=models.DateField()
+     task = models.ForeignKey("Task", null=True ,related_name="period", on_delete=models.CASCADE)
+     
+
+class Task(models.Model):
+     name=models.CharField(max_length=100, null=True)
+     position=models.PositiveSmallIntegerField(null=False)
+    #INSERT INTO ask_task (name,position) VALUES ('',0),('',1),('',2),('',3),('',4),('',5),('',6),('',7),('',8),('',9),('',10),('',11),('',12),('',13),('',14);                                                               from .views import HomeView, ReadDatabaseView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor
+
+urlpatterns = [
+    path('', HomeView.as_view(), name='index'),
+    path('read_database/', ReadDatabaseView.as_view(), name='read_database'),
+    path('create-period/', PeriodCreateView.as_view(), name='create_period'),
+    path('get-periods/', GetPeriodsFromDBView.as_view(),name='get-periods' ),
+    path('update_task_name/', UpdateTaskName.as_view(), name='update_task_name'),
+    # path('delete-period/<int:pk>/', PeriodDeleteView.as_view(), name='delete-period'),
+    path('update-period-color/<int:pk>/', UpdatePeriodColor.as_view(), name='update_period_color'),

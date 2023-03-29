@@ -1,4 +1,3 @@
-
 let matrix = [];
 const years = [];
 let yearsRange = [2023, 2024];
@@ -106,8 +105,10 @@ function createTasks() {
   $.ajax({
     url: '/read_database',
     success: function (response) {
+     
       for (let i = 0; i < response.tasks.length; i++) {
         let task = response.tasks[i];
+        console.log(task)
         let taskDays = [];
         for (let j = 0; j < years.length; j++) {
           for (let k = 0; k < years[j].months.length; k++) {
@@ -121,8 +122,8 @@ function createTasks() {
         }
         matrix.push(taskDays);
         let div_task = $("<div class='task'>");
-        div_task.attr("position", task.position);
-        div_task.attr("id", task.id);
+        div_task.attr("data-position", task.position);
+        div_task.attr("data-id", task.id);
         for (let j = 0; j < matrix[i].length; j++) {
           let day = matrix[i][j];
           let $cell = $("<div class='cell' data-date='" + parseDate(day) + "'>&nbsp;</div>");
@@ -143,24 +144,41 @@ function addPeriodToTask() {
   $(document).on("click", ".cell", function (event) {
     if ($(this).find(".period").length === 0) {
       let dayIndex = $(this).attr("data-date");
-      let period = $("<div class='period resizable'><span class='left-span'></span><span  draggable='true' class='center-span drag-handle'></span><span class='right-span'></span></div>");
-      let currentTask = $(this).parent().attr("data-index");
-      let periodTaskName = $(".tasks-rows[data-index='" + currentTask + "']").text();
-      console.log(periodTaskName)
-      period.attr("data-index", currentTask);
-      period.attr("data-day-start", dayIndex);
-      console.log(typeof(dayIndex))
-      $(this).append(period);
-      strechLeft();
-      strechRight();
-      menu();
-
-
+      console.log(dayIndex)
+      let currentTask = $(this).parent().attr("data-id");
+      console.log(currentTask)
+      let data = {
+        'name': '', // vacio por defecto
+        'color': 'blue', // blue por defecto
+        'start': dayIndex,
+        'end': dayIndex, // igual al start por defecto
+        'task_id': currentTask,
+      };
+      $.ajax({
+        url: '/create-period/',
+        type: 'POST',
+        data: data,
+        dataType: 'json',
+        success: function (response) {
+          console.log(response.message);
+          let period = $("<div class='period resizable'><span class='left-span'></span><span  draggable='true' class='center-span drag-handle'></span><span class='right-span'></span></div>");
+          period.attr("data-id", currentTask);
+          period.attr("data-day-start", dayIndex);
+          $(event.target).append(period);
+          strechLeft();
+          strechRight();
+          menu();
+        },
+        error: function (xhr, status, error) {
+          console.log(xhr.responseText);
+        },
+      });
     }
   });
 
   dragAndDrop();
 }
+
 
 function menu() {
   $(document).on("contextmenu", ".period", function (e) {
@@ -173,15 +191,28 @@ function menu() {
       .off()
       .on("change", function () {
         let color = $(this).val();
-        redDiv.css("background-color", color);
-        $("#context-menu").hide();
+        console.log(color);
+        $.ajax({
+          url: `/update-period-color/${period.data("data-id")}/`,
+          method: 'POST',
+          data: {'color': color},
+          success: function () {
+            period.css("background-color", color);
+            $("#context-menu").hide();
+          },
+          error: function () {
+            alert('Error al actualizar el color del período');
+            console.log(period.data("data-id"))
+          }
+        });
       });
     menu.css({ left: e.pageX, top: e.pageY });
     menu.show();
   });
   $(document).on("click", "#delete-task", function () {
-    let redDiv = $("#context-menu").data("task");
-    redDiv.remove();
+    let period = $("#context-menu").data("period");
+    console.log(period)
+    period.remove();
     $("#context-menu").hide();
   });
   $(document).on("click", function (e) {
@@ -200,8 +231,10 @@ function createPeriodTasks() {
     url: '/read_database',
     success: function (response) {
       for (let i = 0; i < response.tasks.length; i++) {
+        let task = response.tasks[i];
         let div_period_tasks = $("<div class='tasks-periods task-overflow' contenteditable='true'></div>");
-        div_period_tasks.attr("data-index", i);
+        div_period_tasks.attr("data-position", task.position);
+        div_period_tasks.attr("data-id", task.id);
 
         div_period_tasks.mousedown(function (event) {
           if (event.which == 1) {
@@ -213,12 +246,27 @@ function createPeriodTasks() {
         div_period_tasks.mouseup(function (event) {
           $(this).css("cursor", "auto");
         });
-        //Agregamos un evento para actualizar el name en el red-div
+        
+        // Get the task ID from the data-id attribute
+        let task_id = $(div_period_tasks).attr("data-id");
+        
+        // Attach an event listener to update the task name when the user edits the div
         div_period_tasks.on("input", function () {
-          let currentRow = $(this).attr("data-index");
           let taskRowName = $(this).text();
-          let redDiv = $(".cell[data-index='" + currentRow + "']").find(".period");
-          redDiv.attr("data-name", taskRowName);
+          $.ajax({
+            url: '/update_task_name/',
+            type: 'POST',
+            data: {
+              'id': task_id,
+              'name': taskRowName
+            },
+            success: function (response) {
+              console.log(response.message);
+            },
+            error: function (xhr, status, error) {
+              console.log(error);
+            }
+          });
         });
         $(".tasks-container").append(div_period_tasks);
       }
@@ -256,8 +304,6 @@ function sortTaskperiods() {
     },
   });
 }
-
-
 
 function createNewTask() {
   $(".add-task").on("click", function () {
@@ -358,6 +404,7 @@ function strechRight() {
   $(".period.resizable .right-span").on("mousedown", function (event) {
     if ($(event.target).hasClass("right-span")) {
       let activeRedDiv = $(this).parent(".period");
+
       activeRedDiv.addClass("active-right");
       let startPosition = event.pageX;
       let startWidth = activeRedDiv.outerWidth();
@@ -384,26 +431,26 @@ function strechRight() {
             isBlocked = true;
             newWidth = $(this).offset().left - activeRedDiv.offset().left;
             return false;
-          
           }
         });
 
         if (!isBlocked) {
           activeRedDiv.outerWidth(newWidth);
-
-          let startDay = new Date(activeRedDiv.attr("data-day-start"));
+          let startDay = activeRedDiv.attr("data-day-start");
+          console.log(startDay)
           let currentDay = new Date(startDay);
-          currentDay.setDate(startDay.getDate() + Math.floor(newWidth / 20));
-
-          // check if the day is a weekend
-          if (currentDay.getDay() === 6) {
-            currentDay.setDate(currentDay.getDate() + 2);
-          } else if (currentDay.getDay() === 0) {
+          let daysToIncrement = Math.floor(newWidth / 20);
+          for (let i = 0; i < daysToIncrement; i++) {
             currentDay.setDate(currentDay.getDate() + 1);
+            if (currentDay.getDay() === 6) {
+              currentDay.setDate(currentDay.getDate() + 2);
+            } else if (currentDay.getDay() === 0) {
+              currentDay.setDate(currentDay.getDate() + 1);
+            }
           }
-
           activeRedDiv.attr("data-day-end", currentDay.toDateString());
         }
+        
       });
 
       $(document).on("mouseup", function () {
@@ -413,6 +460,7 @@ function strechRight() {
     }
   });
 }
+
 
 function strechLeft() {
   $(".period.resizable .left-span").on("mousedown", function (event) {
@@ -508,59 +556,46 @@ function parseDate(dateString) {
   return `${year}-${month}-${day}`;
 }
 
-
 function readDatabase() {
   $(document).ready(function() {
     $.ajax({
-      url: "/get-tasks/",
+      url: "/get-periods/",
       type: "GET",
       dataType: "json",
       success: function(data) {
         // Agregar las tareas a las filas correspondientes
-        $.each(data.tasks, function(index, task) {
-          // Buscar la fila correspondiente
-          let $period = $(".period[data-index='" + index + "']");
+        $.each(data.periods, function(index, period) {
+          // Buscar la tarea correspondiente
+          let $task = $(".task[data-id='" + period.task_id + "']");
 
-          // Calcular la posición de inicio y fin de la tarea
-          let startCellIndex = getCellIndex(task.start);
-          let endCellIndex = getCellIndex(task.end);
-          let $startCell = $period.find(".cell").eq(startCellIndex);
 
-          // Crear el elemento task y agregar atributos
-          let $task_div = $("<div class='task resizable'><span class='left-span'></span><span  draggable='true' class='center-span drag-handle'></span><span class='right-span'></span></div>");
-          $task_div.css("background-color", task.color);
-          $task_div.attr("data-index", index); // Agregar atributo data-index igual al índice de la fila
-          $task_div.attr("data-start-day",task.start); // Agregar atributo data-start-day con la fecha de inicio convertida
-          $task_div.attr("data-end-day",task.end);
-          $startCell.append($task_div);
+          // Buscar la celda correspondiente
+          let $cell = $task.find(".cell[data-date='" + period.start + "']");
+          console.log(period.task_id)
 
-          // Calcular el ancho del task
-          let cellWidth = $(document).find(".cell").outerWidth();
-          let numCells = endCellIndex - startCellIndex + 1;
-          let width = numCells * cellWidth - 1;
-          $task_div.css("width", width + "px");
+         // Crear el elemento period y agregar atributos
+         let $period_div = $("<div class='period resizable'><span class='left-span'></span><span  draggable='true' class='center-span drag-handle'></span><span class='right-span'></span></div>");
+         $period_div.css("background-color", period.color);
+         $period_div.attr("data-index", index);
+         $period_div.attr("data-start-day", period.start);
+         $period_div.attr("data-end-day", period.end);
+         $cell.append($period_div);
 
-          // Agregar la tarea a la lista de tareas
-          let $task_name = $("<div class='task_name'>" + task.name + "</div>");
-          $task_name.attr("title", task.start + " - " + task.end);
-          $(".tasks-periods[data-index ='" + index + "']").append($task_name);
-          console.log(task.name);
+         // Calcular el ancho del period
+         let cellWidth = $(document).find(".cell").outerWidth();
+         let startCellIndex = $cell.index();
+         let endCellIndex = $task.find(".cell[data-date='" + period.end + "']").index();
+         let numCells = endCellIndex - startCellIndex + 1;
+         let width = numCells * cellWidth - 1;
+         $period_div.css("width", width + "px");
+
+          
           strechLeft();
           strechRight();
           menu();
         });
       }
     });
-    // Función auxiliar para calcular la posición de una celda en la matriz
-    function getCellIndex(dateString) {
-      let date = new Date(dateString);
-      for (let i = 0; i < matrix[0].length; i++) {
-        if (matrix[0][i].getFullYear() === date.getFullYear() && matrix[0][i].getMonth() === date.getMonth() && matrix[0][i].getDate() === date.getDate()) {
-          return i;
-        }
-      }
-      return -1;
-    }
   });
 
 }
