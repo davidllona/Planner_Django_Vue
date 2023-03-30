@@ -2,16 +2,16 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views import View
 from .models import Task, Period
+from datetime import datetime
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-import json
 
 # Create your views here.
 class HomeView(View):
     def get(self, request):
         return render(request,'index.html')
     
-class ReadDatabaseView(View):
+class GetTasksFromDBView(View):
     def get(self, request):
         tasks = Task.objects.all().order_by('id')
         task_list = []
@@ -102,6 +102,20 @@ class UpdatePeriodColor(View):
             period = Period.objects.get(id=pk)
             color = request.POST.get('color')
             period.color = color
+            period.save()
+            return JsonResponse({'success': True})
+        except Period.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Period not found.'})
+        
+class UpdatePeriodEnd(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(UpdatePeriodEnd, self).dispatch(request, *args, **kwargs)
+    def post(self, request, pk):
+        try:
+            period = Period.objects.get(id=pk)
+            end = request.POST.get('end')
+            period.end = end
             period.save()
             return JsonResponse({'success': True})
         except Period.DoesNotExist:

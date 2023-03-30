@@ -31,12 +31,7 @@ body {
   border-bottom: 1px solid #ececec; 
   text-align: center;
 }
-.periods-tasks {
-  height: 19px;
-  border-bottom: 1px solid #ececec;
-  justify-content: center;
-  
-}
+
 
 .header {
   display: inline-flex;
@@ -48,6 +43,10 @@ body {
   height: 19px;
   justify-content: center;
   border-right: 1px solid #ffffff;
+}
+
+.period-text {
+  position: absolute;
 }
 
 .today {

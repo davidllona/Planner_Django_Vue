@@ -2,6 +2,7 @@ let matrix = [];
 const years = [];
 let yearsRange = [2023, 2024];
 
+
 $(document).ready(function () {
   createMatrixDates(yearsRange);
   createHeaderMonths();
@@ -103,12 +104,11 @@ function createHeaderMonths() {
 
 function createTasks() {
   $.ajax({
-    url: '/read_database',
+    url: '/read_task',
     success: function (response) {
      
       for (let i = 0; i < response.tasks.length; i++) {
         let task = response.tasks[i];
-        console.log(task)
         let taskDays = [];
         for (let j = 0; j < years.length; j++) {
           for (let k = 0; k < years[j].months.length; k++) {
@@ -165,7 +165,7 @@ function addPeriodToTask() {
           period.attr("data-color", "blue"); // set the default color
           $(event.target).append(period);
           strechLeft();
-          strechRight();
+          stretchRight();
           menu();
         },
         error: function (xhr, status, error) {
@@ -200,7 +200,6 @@ function menu() {
           },
           error: function () {
             alert('Error al actualizar el color del período');
-            console.log(period.data("id"))
           }
         });
         
@@ -210,16 +209,19 @@ function menu() {
   });
   $(document).one("click", "#delete-period", function () {
     let period = $("#context-menu").data("task");
-    console.log(period);
     $.ajax({
       url: `/delete-period/${period.data("id")}/`,
       method: 'DELETE',
       success: function (response) {
-        console.log(response.message);
-        period.remove();
-        $("#context-menu").hide();
+          console.log(response.message);
+          period.remove();
+          $("#context-menu").hide();
       },
-    });
+      error: function (xhr, status, error) {
+          console.log(error);
+      }
+  });
+  
 });
 
   
@@ -234,21 +236,26 @@ function menu() {
   
 }
 
-
 function createPeriodTasks() {
   $.ajax({
-    url: '/read_database',
+    url: '/read_task',
     success: function (response) {
       for (let i = 0; i < response.tasks.length; i++) {
         let task = response.tasks[i];
-        let div_period_tasks = $("<div class='tasks-periods task-overflow' contenteditable='true'></div>");
-        div_period_tasks.attr("data-position", task.position);
-        div_period_tasks.attr("data-id", task.id);
+        let div_period_tasks = $(`<div class='tasks-periods' contenteditable='false' data-id='${task.id}' data-position='${task.position}'><span class='task-name'>${task.name}</span></div>`);
 
         div_period_tasks.mousedown(function (event) {
           if (event.which == 1) {
             event.preventDefault();
+            $(this).attr("contenteditable", "true");
             $(this).focus();
+            const textLength = $(this).text().length;
+            const sel = window.getSelection();
+            const range = document.createRange();
+            range.setStart(sel.focusNode, textLength);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
             $(this).css("cursor", "move");
           }
         });
@@ -280,6 +287,23 @@ function createPeriodTasks() {
         $(".tasks-container").append(div_period_tasks);
       }
       sortTaskperiods();
+    }
+  });
+}
+
+function updateTaskName(task_id, task_name) {
+  $.ajax({
+    url: '/update_task_name/',
+    type: 'POST',
+    data: {
+      'id': task_id,
+      'name': task_name
+    },
+    success: function (response) {
+      console.log(response.message);
+    },
+    error: function (xhr, status, error) {
+      console.log(error);
     }
   });
 }
@@ -408,7 +432,7 @@ $(document).on("dragstart", ".period .center-span", function (event) {
   
 }
 
-function strechRight() {
+function stretchRight() {
   $(".period.resizable .right-span").on("mousedown", function (event) {
     if ($(event.target).hasClass("right-span")) {
       let activeRedDiv = $(this).parent(".period");
@@ -417,19 +441,35 @@ function strechRight() {
       let startPosition = event.pageX;
       let startWidth = activeRedDiv.outerWidth();
       let newWidth = 0;
-      let nextRedDivPosition = activeRedDiv.offset().left + activeRedDiv.outerWidth();
-      console.log(activeRedDiv.offset().left);
+      let startDay = activeRedDiv.attr("data-start-day");
+      let currentDay = new Date(activeRedDiv.attr("data-end-day"));
+      console.log(currentDay)
+
+
+      // Actualiza startDay si el período ya ha sido estirado antes
+      if (activeRedDiv.attr("data-start-day") !== activeRedDiv.attr("data-end-day")) {
+        startDay = currentDay.toISOString().substring(0, 10);
+      }
+
       $(document).on("mousemove", function (event) {
         let distance = event.pageX - startPosition;
         let distanceInCells = Math.round(
           distance / $(document).find(".cell").outerWidth()
         );
-        if (newWidth < 19) {
-          newWidth = 19;
-        }
+        
+        // Calcula la nueva anchura de la barra
         newWidth = startWidth + distanceInCells * 20;
+        
+        // Si la nueva anchura es menor que la anchura actual y tiene menos de 19px, ajusta la fecha final para que sea igual a la fecha de inicio
+        if (newWidth < startWidth && newWidth <= 19) {
+          newWidth = 19;
+          activeRedDiv.attr("data-end-day", startDay);
+          activeRedDiv.outerWidth(newWidth);
+          return;
+        }
 
         let isBlocked = false;
+        let nextRedDivPosition = activeRedDiv.offset().left + newWidth;
         $(".period").each(function () {
           if (
             $(this).offset().top === activeRedDiv.offset().top &&
@@ -443,23 +483,32 @@ function strechRight() {
         });
 
         if (!isBlocked) {
+          let newEndDay = addDaysToDate(startDay, distanceInCells);
+          activeRedDiv.attr("data-end-day", newEndDay);
           activeRedDiv.outerWidth(newWidth);
-          let startDay = activeRedDiv.attr("data-day-start");
-          console.log(startDay)
-          let currentDay = new Date(startDay);
-          let daysToIncrement = Math.floor(newWidth / 20);
-          for (let i = 0; i < daysToIncrement; i++) {
-            currentDay.setDate(currentDay.getDate() + 1);
-            if (currentDay.getDay() === 6) {
-              currentDay.setDate(currentDay.getDate() + 2);
-            } else if (currentDay.getDay() === 0) {
-              currentDay.setDate(currentDay.getDate() + 1);
+
+          // Actualiza el campo 'end' del objeto 'period' en la base de datos
+          $.ajax({
+            type: "POST",
+            url: `/update_period_end/${activeRedDiv.data("id")}/`,
+            data: {
+              'end': newEndDay
+            },
+            success: function(response) {
+              if (response.success) {
+                console.log('Period end updated successfully.');
+              } else {
+                console.log('Failed to update period end.');
+              }
             }
-          }
-          activeRedDiv.attr("data-day-end", currentDay.toDateString());
+          });
         }
-        
+
+        currentDay = new Date(activeRedDiv.attr("data-end-day"));
       });
+
+      console.log(startDay)
+      console.log(currentDay)
 
       $(document).on("mouseup", function () {
         $(document).off("mousemove");
@@ -469,6 +518,19 @@ function strechRight() {
   });
 }
 
+function addDaysToDate(startDate, numDays) {
+  let endDate = new Date(startDate);
+  let numWeekendDays = 0;
+  while (numDays > 0) {
+    endDate.setDate(endDate.getDate() + 1);
+    if (endDate.getDay() === 6 || endDate.getDay() === 0) {
+      numWeekendDays++;
+    } else {
+      numDays--;
+    }
+  }
+  return endDate.toISOString().substring(0, 10);
+}
 
 function strechLeft() {
   $(".period.resizable .left-span").on("mousedown", function (event) {
@@ -577,27 +639,26 @@ function readDatabase() {
           let $task = $(".task[data-id='" + period.task_id + "']");
           // Buscar la celda correspondiente
           let $cell = $task.find(".cell[data-date='" + period.start + "']");
-          console.log(period.task_id)
 
-         // Crear el elemento period y agregar atributos
-         let $period_div = $("<div class='period resizable'><span class='left-span'></span><span  draggable='true' class='center-span drag-handle'></span><span class='right-span'></span></div>");
-         $period_div.css("background-color", period.color);
-         $period_div.attr("data-id", period.id);
-         $period_div.attr("data-start-day", period.start);
-         $period_div.attr("data-end-day", period.end);
-         $cell.append($period_div);
+          // Crear el elemento period y agregar atributos
+          let $period_div = $("<div class='period resizable'><span class='left-span'></span><span  draggable='true' class='center-span drag-handle'></span><span class='right-span'></span></div>");
+          $period_div.css("background-color", period.color);
+          $period_div.attr("data-id", period.id);
+          $period_div.attr("data-start-day", period.start);
+          $period_div.attr("data-end-day", period.end);
+          $period_div.attr("data-position", $task.attr("data-position")); // Agregar atributo data-position con el valor correspondiente al task
+          $cell.append($period_div);
 
-         // Calcular el ancho del period
-         let cellWidth = $(document).find(".cell").outerWidth();
-         let startCellIndex = $cell.index();
-         let endCellIndex = $task.find(".cell[data-date='" + period.end + "']").index();
-         let numCells = endCellIndex - startCellIndex + 1;
-         let width = numCells * cellWidth - 1;
-         $period_div.css("width", width + "px");
+          // Calcular el ancho del period
+          let cellWidth = $(document).find(".cell").outerWidth();
+          let startCellIndex = $cell.index();
+          let endCellIndex = $task.find(".cell[data-date='" + period.end + "']").index();
+          let numCells = endCellIndex - startCellIndex + 1;
+          let width = numCells * cellWidth - 1;
+          $period_div.css("width", width + "px");
 
-          
           strechLeft();
-          strechRight();
+          stretchRight();
           menu();
         });
       },
