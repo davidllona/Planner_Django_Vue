@@ -6,14 +6,10 @@ class Period(models.Model):
      color=models.CharField(max_length=7, default="blue")
      start=models.DateField()
      end=models.DateField()
-     task_id = models.ForeignKey("Task", null=True ,related_name="period", on_delete=models.CASCADE)
+     task = models.ForeignKey("Task", null=True ,related_name="period", on_delete=models.CASCADE)
      
 
 class Task(models.Model):
      name=models.CharField(max_length=100, null=True)
      position=models.PositiveSmallIntegerField(null=False)
-<<<<<<< HEAD
     #INSERT INTO ask_task (name,position) VALUES ('',0),('',1),('',2),('',3),('',4),('',5),('',6),('',7),('',8),('',9),('',10),('',11),('',12),('',13),('',14);
-=======
-    #INSERT INTO ask_task (name,position) VALUES ('',0),('',1),('',2),('',3),('',4),('',5),('',6),('',7),('',8),('',9),('',10),('',11),('',12),('',13),('',14);
->>>>>>> 5d42a6d899f9dac447b1222b6fc1f4f1b9a56dfb

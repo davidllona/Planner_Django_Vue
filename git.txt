@@ -4,39 +4,5 @@ git add README.md
 git commit -m "first commit"
 git branch -M main
 git remote add origin https://github.com/davidllona/PlannerDjango.git
-<<<<<<< HEAD
 git push -u origin main
-
-@method_decorator(csrf_exempt, name='dispatch')
-class AddPeriodToTaskView(View):
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
-
-    def post(self, request, *args, **kwargs):
-        try:
-            # obtener los datos del período a partir del formulario
-            name = request.POST.get('name')
-            color = 'blue'
-            start = request.POST.get('data-day-start')
-            end = request.POST.get('data-day-start')
-            task_id = request.POST.get('task_id')
-            
-            # obtener la tarea asociada al período
-            task = Task.objects.get(id=task_id)
-            
-            # guardar los datos del período en la base de datos
-            period = Period(name=name, color=color, start=start, end=end, task_id=task)
-            period.save()
-            
-            return HttpResponse('Period created successfully')
-        except Exception as e:
-            print(e)
-            return HttpResponseBadRequest('Error creating period')
-      
-
-
-
-=======
-git push -u origin main
->>>>>>> 3aa2803b59134204324a34772b65d7b84dad3876
+git pull https://github.com/davidllona/PlannerDjango.git

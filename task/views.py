@@ -1,15 +1,10 @@
 from django.http import JsonResponse
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.views import View
 from .models import Task, Period
-<<<<<<< HEAD
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 import json
-=======
-# from django.views.decorators.csrf import csrf_exempt
-# from django.utils.decorators import method_decorator
->>>>>>> 5d42a6d899f9dac447b1222b6fc1f4f1b9a56dfb
 
 # Create your views here.
 class HomeView(View):
@@ -26,24 +21,13 @@ class ReadDatabaseView(View):
                 'name': task.name,
                 'position': task.position,
             })
-<<<<<<< HEAD
         return JsonResponse({'tasks': task_list})   
-=======
-        return JsonResponse({'tasks': task_list})
-      
-    
-    
-      
-
-
->>>>>>> 5d42a6d899f9dac447b1222b6fc1f4f1b9a56dfb
 
 class PeriodCreateView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super(PeriodCreateView, self).dispatch(request, *args, **kwargs)
 
-<<<<<<< HEAD
     def post(self, request, *args, **kwargs):
         data = request.POST
         name = data.get('name', '') # vacio por defecto
@@ -53,40 +37,10 @@ class PeriodCreateView(View):
         task_id = data.get('task_id', '')
         task = Task.objects.get(id=task_id)
         period = Period(name=name, color=color, start=start, end=end, task_id=task.id)
-=======
-    
-    
-    
-    
-    
-    
->>>>>>> 5d42a6d899f9dac447b1222b6fc1f4f1b9a56dfb
 
         period.save()
 
-<<<<<<< HEAD
         return JsonResponse({'status': 'success', 'message': 'Period created successfully!'})
-=======
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# @method_decorator(csrf_exempt, name='dispatch')
-# class CreateTasksView(View):
-#     @method_decorator(csrf_exempt)
-#     def dispatch(self, request, *args, **kwargs):
-#         return super().dispatch(request, *args, **kwargs)
->>>>>>> 5d42a6d899f9dac447b1222b6fc1f4f1b9a56dfb
 
 class GetPeriodsFromDBView(View):
     def get(self, request):
@@ -96,11 +50,12 @@ class GetPeriodsFromDBView(View):
         periods_result = []
         for period in periods:
             period_dict = {
-                'name': period.name,
-                'color': period.color,
-                'start': period.start.strftime('%Y-%m-%d'),
-                'end': period.end.strftime('%Y-%m-%d'),
-                'task_id': period.task.id,
+                    'name': period.name,
+                    'color': period.color,
+                    'start': period.start.strftime('%Y-%m-%d'),
+                    'end': period.end.strftime('%Y-%m-%d'),
+                    'task_id': period.task.id,
+                    'id': period.id, # Agrega la clave-valor de la ID aquí
 
             }
 
@@ -128,14 +83,20 @@ class UpdateTaskName(View):
             message = str(e)
             return JsonResponse({'message': message})
 
-# class PeriodDeleteView(View):
-#     def delete(self, request, pk):
-#         period = get_object_or_404(Period, pk=pk)
-#         period.delete()
-#         message = f'Period eliminated'
-#         return JsonResponse({'message': message})
+class PeriodDeleteView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(PeriodDeleteView, self).dispatch(request, *args, **kwargs)
+    def delete(self, request, pk):
+        period = get_object_or_404(Period, pk=pk)
+        period.delete()
+        message = f'Period eliminated'
+        return JsonResponse({'message': message})
 
 class UpdatePeriodColor(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(UpdatePeriodColor, self).dispatch(request, *args, **kwargs)
     def post(self, request, pk):
         try:
             period = Period.objects.get(id=pk)

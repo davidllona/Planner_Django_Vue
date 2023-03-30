@@ -19,10 +19,4 @@ from django.urls import path,include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(('task.urls', 'task'))),
-<<<<<<< HEAD
 ]
-=======
-    
-    
-]
->>>>>>> 3aa2803b59134204324a34772b65d7b84dad3876
