@@ -2,9 +2,10 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.views import View
 from .models import Task, Period
-from datetime import datetime
+from django.db import models
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
+from django.http import JsonResponse
 
 # Create your views here.
 class HomeView(View):
@@ -13,7 +14,7 @@ class HomeView(View):
     
 class GetTasksFromDBView(View):
     def get(self, request):
-        tasks = Task.objects.all().order_by('id')
+        tasks = Task.objects.all().order_by('position')
         task_list = []
         for task in tasks:
             task_list.append({
@@ -120,3 +121,72 @@ class UpdatePeriodEnd(View):
             return JsonResponse({'success': True})
         except Period.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Period not found.'})
+
+class UpdatePeriodStart(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(UpdatePeriodStart, self).dispatch(request, *args, **kwargs)
+
+    def post(self, request, pk):
+        try:
+            period = Period.objects.get(id=pk)
+            start = request.POST.get('start')
+            period.start = start
+            period.save()
+            return JsonResponse({'success': True})
+        except Period.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Period not found.'})
+
+class UpdateTaskPosition(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request):
+        task_id = request.POST.get("id")
+        new_position = int(request.POST.get("position"))
+        task = Task.objects.get(id=task_id)
+        current_position = task.position
+        
+        # Update positions of all other tasks
+        if current_position < new_position:
+            # Move task down in the list
+            tasks_to_update = Task.objects.filter(position__gt=current_position, position__lte=new_position)
+            for t in tasks_to_update:
+                t.position -= 1
+                t.save()
+        elif current_position > new_position:
+            # Move task up in the list
+            tasks_to_update = Task.objects.filter(position__lt=current_position, position__gte=new_position)
+            for t in tasks_to_update:
+                t.position += 1
+                t.save()
+        
+        # Update the position of the task in the database
+        task.position = new_position
+        task.save()
+                
+        return JsonResponse({"message": "Task position updated successfully."})
+    
+class UpdatePeriodView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+    
+    def post(self, request):
+        period_id = request.POST.get("period_id")
+        new_task_id = request.POST.get("new_task_id")
+        new_start_date = request.POST.get("new_start_date")
+        new_end_date = request.POST.get("new_end_date")
+
+        try:
+            period = Period.objects.get(id=period_id)
+            period.task_id = new_task_id
+            period.start = new_start_date
+            period.end = new_end_date
+            period.save()
+            return JsonResponse({"success": True})
+        except Period.DoesNotExist:
+            return JsonResponse({"success": False})            
+    
+    

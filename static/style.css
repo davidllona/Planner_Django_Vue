@@ -94,12 +94,20 @@ body {
 
 .period {
   background: red;
-  width: 19px;
+  width: auto;
   height: 19px;
   position: absolute;
   min-width: 19px;
   border-radius: 5px;
   user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  color: white;
+}
+
+.period.ellipsis {
+  width: auto;
+  display: inline-block;
 }
 
 .left-span {
