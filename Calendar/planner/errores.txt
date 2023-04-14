@@ -1,0 +1,351 @@
+t seems that there is an issue with updating the currentStart and currentEnd variables in the dragAndDrop() function. Instead of using the start and end dates of the current period, they are using the start and end dates of the period where the task was previously located. To fix this, you can update the currentStart and currentEnd variables in the dragAndDrop() function to use the start and end dates of the new period where the task has been dropped. ACtualizame el codigo                 function dragAndDrop() {
+  let currentDraggingElement = null;
+
+  $(document).on("dragstart", ".period .center-span", function (event) {
+    currentDraggingElement = $(this).closest(".period");
+    let position = currentDraggingElement.attr("data-position");
+    console.log("Position: " + position);
+    event.originalEvent.dataTransfer.setData("text", position);
+  });
+
+  $(document).on("dragover", ".cell", function (event) {
+    event.preventDefault();
+  });
+
+  $(document).on("dragenter", ".cell", function (event) {
+    event.preventDefault();
+  });
+
+  $(document).on("drop", ".cell", function (event) {
+    event.preventDefault();
+
+    // If the cell is occupied, return the task to its previous position
+    if ($(this).hasClass('occupied')) {
+      return;
+    }
+
+    let currentperiod = $(this).parent().attr("data-position");
+    let sourceperiod = currentDraggingElement.attr("data-position");
+    currentDraggingElement.attr("data-position", currentperiod);
+    currentDraggingElement.detach().appendTo($(this));
+    console.log("Current Position: " + currentperiod);
+    console.log("Source Position: " + sourceperiod);
+
+    // Move task-period to match task period if different
+    if (currentperiod !== sourceperiod) {
+      let taskperiod = $(".tasks-periods[data-position='" + sourceperiod + "']");
+      // Actualizar la clase "occupied" en las celdas que estaban ocupadas antes
+    let occupiedCells = $(".cell.occupied");
+    occupiedCells.each(function() {
+      let occupiedPeriod = $(this).find(".period");
+      let occupiedStart = new Date(occupiedPeriod.attr("data-start-day"));
+      let occupiedEnd = new Date(occupiedPeriod.attr("data-end-day"));
+      let cellDate = new Date($(this).attr("data-date"));
+      if (cellDate >= occupiedStart && cellDate <= occupiedEnd) {
+        $(this).removeClass("occupied");
+      }
+    });
+
+    // Actualizar la clase "occupied" en las celdas que están ocupadas ahora
+    let currentPeriod = $(this).find(".period");
+    let currentStart = new Date(currentPeriod.attr("data-start-day"));
+    let currentEnd = new Date(currentPeriod.attr("data-end-day"));
+    console.log(currentStart)
+    console.log(currentEnd)
+    $(".cell").each(function() {
+      let cellDate = new Date($(this).attr("data-date"));
+      if (cellDate >= currentStart && cellDate <= currentEnd) {
+        $(this).addClass("occupied");
+      }
+    });
+
+      
+      
+      taskperiod.detach();
+      if (currentperiod < sourceperiod) {
+        taskperiod.insertBefore($(".tasks-periods[data-position='" + currentperiod + "']"));
+      } else {
+        taskperiod.insertAfter($(".tasks-periods[data-position='" + currentperiod + "']"));
+      }
+      taskperiod.attr("data-position", currentperiod);
+
+      // Update data-position for task periods and red divs
+      let taskperiods = $(".tasks-periods");
+      taskperiods.each(function (i) {
+        $(this).attr("data-position", i + 1);
+        let periods = $(this).find(".period");
+        periods.each(function () {
+          $(this).attr("data-position", i);
+        });
+      });
+
+      // Update data-day-start
+      let redDiv = currentDraggingElement;
+      let cell = redDiv.closest(".cell");
+      let dayStart = cell.attr("data-position");
+      redDiv.attr("data-day-start", dayStart);
+
+      let period_id = redDiv.attr("data-id");
+      console.log(period_id)
+      let new_task_id = $(this).closest(".tasks-periods").attr("data-id");
+      console.log(new_task_id)
+      let new_start_date = $(this).attr("data-day-start");
+      console.log(new_start_date)
+      let new_end_date = $(this).attr("data-date-end");
+      console.log(new_end_date)
+      // $.ajax({
+      //   type: "POST",
+      //   url: "/update_period/",
+      //   data: {
+      //     period_id: period_id,
+      //     new_task_id: new_task_id,
+      //     new_start_date: new_start_date,
+      //     new_end_date: new_end_date,
+      //   },
+      //   success: function (response) {
+      //     console.log(response);
+      //   },
+      // });
+    }
+    
+  });
+
+  $(document).on("dragend", ".period", function (event) {
+    currentDraggingElement = null;
+  });
+}
+
+function readDatabase() {
+  $(document).ready(function() {
+    $.ajax({
+      url: "/get-periods/",
+      type: "GET",
+      dataType: "json",
+      success: function(data) {
+        // Agregar las tareas a las filas correspondientes
+        $.each(data.periods, function(index, period) {
+          // Buscar la tarea correspondiente
+          let $task = $(".task[data-id='" + period.task_id + "']");
+          // Buscar la celda correspondiente
+          let $cell = $task.find(".cell[data-date='" + period.start + "']");
+
+          let start = new Date(period.start);
+          let end = new Date(period.end);
+          console.log(start)
+          console.log(end)
+          // Buscar todas las celdas entre "start" y "end" y agregar la clase "occupied"
+          $task.find(".cell").each(function() {
+            let cellDate = new Date($(this).attr("data-date"));
+            if (cellDate >= start && cellDate <= end) {
+              $(this).addClass("occupied");
+            }
+          });
+
+          console.log("start:", start);
+          console.log("end:", end);
+          
+          // Crear el elemento period y agregar atributos
+          let $period_div = $("<div class='period resizable'><span class='left-span'></span><span  draggable='true' class='center-span drag-handle'></span><span class='right-span'></span></div>");
+          $period_div.css("background-color", period.color);
+          $period_div.attr("data-id", period.id);
+          $period_div.attr("data-start-day", period.start);
+          $period_div.attr("data-end-day", period.end);
+          $period_div.attr("data-position", $task.attr("data-position")); // Agregar atributo data-position con el valor correspondiente al task
+
+
+          $cell.append($period_div);
+
+          // Calcular el ancho del period
+          let cellWidth = $(document).find(".cell").outerWidth();
+          let startCellIndex = $cell.index();
+          let endCellIndex = $task.find(".cell[data-date='" + period.end + "']").index();
+          let numCells = endCellIndex - startCellIndex + 1;
+          let width = numCells * cellWidth - 1;
+          $period_div.css("width", width + "px");
+
+          stretchLeft();
+          stretchRight();
+          menu();
+        });
+      },
+      error: function() {
+        console.log("Error retrieving periods data.");
+      }
+    });
+  });
+}It seems that there is an issue with updating the currentStart and currentEnd variables in the dragAndDrop() function. Instead of using the start and end dates of the current period, they are using the start and end dates of the period where the task was previously located. To fix this, you can update the currentStart and currentEnd variables in the dragAndDrop() function to use the start and end dates of the new period where the task has been dropped. ACtualizame el codigo                 function dragAndDrop() {
+  let currentDraggingElement = null;
+
+  $(document).on("dragstart", ".period .center-span", function (event) {
+    currentDraggingElement = $(this).closest(".period");
+    let position = currentDraggingElement.attr("data-position");
+    console.log("Position: " + position);
+    event.originalEvent.dataTransfer.setData("text", position);
+  });
+
+  $(document).on("dragover", ".cell", function (event) {
+    event.preventDefault();
+  });
+
+  $(document).on("dragenter", ".cell", function (event) {
+    event.preventDefault();
+  });
+
+  $(document).on("drop", ".cell", function (event) {
+    event.preventDefault();
+
+    // If the cell is occupied, return the task to its previous position
+    if ($(this).hasClass('occupied')) {
+      return;
+    }
+
+    let currentperiod = $(this).parent().attr("data-position");
+    let sourceperiod = currentDraggingElement.attr("data-position");
+    currentDraggingElement.attr("data-position", currentperiod);
+    currentDraggingElement.detach().appendTo($(this));
+    console.log("Current Position: " + currentperiod);
+    console.log("Source Position: " + sourceperiod);
+
+    // Move task-period to match task period if different
+    if (currentperiod !== sourceperiod) {
+      let taskperiod = $(".tasks-periods[data-position='" + sourceperiod + "']");
+      // Actualizar la clase "occupied" en las celdas que estaban ocupadas antes
+    let occupiedCells = $(".cell.occupied");
+    occupiedCells.each(function() {
+      let occupiedPeriod = $(this).find(".period");
+      let occupiedStart = new Date(occupiedPeriod.attr("data-start-day"));
+      let occupiedEnd = new Date(occupiedPeriod.attr("data-end-day"));
+      let cellDate = new Date($(this).attr("data-date"));
+      if (cellDate >= occupiedStart && cellDate <= occupiedEnd) {
+        $(this).removeClass("occupied");
+      }
+    });
+
+    // Actualizar la clase "occupied" en las celdas que están ocupadas ahora
+    let currentPeriod = $(this).find(".period");
+    let currentStart = new Date(currentPeriod.attr("data-start-day"));
+    let currentEnd = new Date(currentPeriod.attr("data-end-day"));
+    console.log(currentStart)
+    console.log(currentEnd)
+    $(".cell").each(function() {
+      let cellDate = new Date($(this).attr("data-date"));
+      if (cellDate >= currentStart && cellDate <= currentEnd) {
+        $(this).addClass("occupied");
+      }
+    });
+
+      
+      
+      taskperiod.detach();
+      if (currentperiod < sourceperiod) {
+        taskperiod.insertBefore($(".tasks-periods[data-position='" + currentperiod + "']"));
+      } else {
+        taskperiod.insertAfter($(".tasks-periods[data-position='" + currentperiod + "']"));
+      }
+      taskperiod.attr("data-position", currentperiod);
+
+      // Update data-position for task periods and red divs
+      let taskperiods = $(".tasks-periods");
+      taskperiods.each(function (i) {
+        $(this).attr("data-position", i + 1);
+        let periods = $(this).find(".period");
+        periods.each(function () {
+          $(this).attr("data-position", i);
+        });
+      });
+
+      // Update data-day-start
+      let redDiv = currentDraggingElement;
+      let cell = redDiv.closest(".cell");
+      let dayStart = cell.attr("data-position");
+      redDiv.attr("data-day-start", dayStart);
+
+      let period_id = redDiv.attr("data-id");
+      console.log(period_id)
+      let new_task_id = $(this).closest(".tasks-periods").attr("data-id");
+      console.log(new_task_id)
+      let new_start_date = $(this).attr("data-day-start");
+      console.log(new_start_date)
+      let new_end_date = $(this).attr("data-date-end");
+      console.log(new_end_date)
+      // $.ajax({
+      //   type: "POST",
+      //   url: "/update_period/",
+      //   data: {
+      //     period_id: period_id,
+      //     new_task_id: new_task_id,
+      //     new_start_date: new_start_date,
+      //     new_end_date: new_end_date,
+      //   },
+      //   success: function (response) {
+      //     console.log(response);
+      //   },
+      // });
+    }
+    
+  });
+
+  $(document).on("dragend", ".period", function (event) {
+    currentDraggingElement = null;
+  });
+}
+
+function readDatabase() {
+  $(document).ready(function() {
+    $.ajax({
+      url: "/get-periods/",
+      type: "GET",
+      dataType: "json",
+      success: function(data) {
+        // Agregar las tareas a las filas correspondientes
+        $.each(data.periods, function(index, period) {
+          // Buscar la tarea correspondiente
+          let $task = $(".task[data-id='" + period.task_id + "']");
+          // Buscar la celda correspondiente
+          let $cell = $task.find(".cell[data-date='" + period.start + "']");
+
+          let start = new Date(period.start);
+          let end = new Date(period.end);
+          console.log(start)
+          console.log(end)
+          // Buscar todas las celdas entre "start" y "end" y agregar la clase "occupied"
+          $task.find(".cell").each(function() {
+            let cellDate = new Date($(this).attr("data-date"));
+            if (cellDate >= start && cellDate <= end) {
+              $(this).addClass("occupied");
+            }
+          });
+
+          console.log("start:", start);
+          console.log("end:", end);
+          
+          // Crear el elemento period y agregar atributos
+          let $period_div = $("<div class='period resizable'><span class='left-span'></span><span  draggable='true' class='center-span drag-handle'></span><span class='right-span'></span></div>");
+          $period_div.css("background-color", period.color);
+          $period_div.attr("data-id", period.id);
+          $period_div.attr("data-start-day", period.start);
+          $period_div.attr("data-end-day", period.end);
+          $period_div.attr("data-position", $task.attr("data-position")); // Agregar atributo data-position con el valor correspondiente al task
+
+
+          $cell.append($period_div);
+
+          // Calcular el ancho del period
+          let cellWidth = $(document).find(".cell").outerWidth();
+          let startCellIndex = $cell.index();
+          let endCellIndex = $task.find(".cell[data-date='" + period.end + "']").index();
+          let numCells = endCellIndex - startCellIndex + 1;
+          let width = numCells * cellWidth - 1;
+          $period_div.css("width", width + "px");
+
+          stretchLeft();
+          stretchRight();
+          menu();
+        });
+      },
+      error: function() {
+        console.log("Error retrieving periods data.");
+      }
+    });
+  });
+}
