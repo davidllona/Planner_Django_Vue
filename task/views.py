@@ -188,5 +188,21 @@ class UpdatePeriodView(View):
             return JsonResponse({"success": True})
         except Period.DoesNotExist:
             return JsonResponse({"success": False})            
+        
+        
+
+
+class TaskListView(View):
+    def get(self, request):
+        tasks = Task.objects.filter(position__gt=5).order_by('position')
+        task_list = []
+        for task in tasks:
+            task_list.append({
+                'id': task.id,
+                'name': task.name,
+                'position': task.position,
+            })
+        return JsonResponse({'tasks': task_list})
+
     
     

@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import HomeView, GetTasksFromDBView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor, PeriodDeleteView,UpdatePeriodEnd, UpdatePeriodStart,UpdateTaskPosition, UpdatePeriodView
+from .views import HomeView, GetTasksFromDBView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor, PeriodDeleteView,UpdatePeriodEnd, UpdatePeriodStart,UpdateTaskPosition, UpdatePeriodView, TaskListView
 urlpatterns = [
     path('', HomeView.as_view(), name='index'),
     path('read_task/', GetTasksFromDBView.as_view(), name='read_task'),
@@ -12,4 +12,7 @@ urlpatterns = [
     path('update_period_start/<int:pk>/', UpdatePeriodStart.as_view(), name='update_period_start'),
     path('update_task_position/', UpdateTaskPosition.as_view(), name='update_task_position'),
     path('update_period/', UpdatePeriodView.as_view(), name='update_period'),
+     path('api/tasks/', TaskListView.as_view(), name='task-list'),
 ]
+
+
