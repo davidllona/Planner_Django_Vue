@@ -6,6 +6,7 @@ from django.db import models
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
+from django.contrib.auth import authenticate, login
 
 # Create your views here.
 class HomeView(View):
@@ -205,4 +206,17 @@ class TaskListView(View):
         return JsonResponse({'tasks': task_list})
 
     
-    
+class LoginView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
+
+    def post(self, request):
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse({'success': True, 'user': user.username})
+        else:
+            return JsonResponse({'success': False})

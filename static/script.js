@@ -37,6 +37,8 @@ function createMatrixDates(yearsRange) {
     years.push(year);
   }
   return years;
+
+
 }
 
 function createHeader() {
@@ -149,7 +151,6 @@ function drawTasks(response) {
     });
     $(".grid").append(div_task);
   }
-
 }
 
 function listenToCreatePeriods() {
