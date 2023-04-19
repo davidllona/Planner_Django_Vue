@@ -172,10 +172,7 @@ export default {
           for (let l = 0; l < month.length; l++) {
             let day = month[l];
             day.dateString = new Date(
-              this.years[j].year,
-              k,
-              l + 1
-            ).toDateString();
+              this.years[j].year,k,l + 1).toDateString();
             taskDays.push(day);
           }
         }
