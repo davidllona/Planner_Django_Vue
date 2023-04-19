@@ -115,6 +115,7 @@ function createTasks() {
 }
 
 function drawTasks(response) {
+  console.log(response.tasks);
   const today = new Date(); 
   for (let i = 0; i < response.tasks.length; i++) {
     let task = response.tasks[i];

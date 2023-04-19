@@ -1,43 +1,41 @@
 <template>
   <div>
     <div class="navbar"></div>
-    <div class="tasks-container" id="task_list">
+    <div class="tasks-container ui-sortable" id="task_list">
       <div class="tasks-header"><span class="titulo">Tarea</span></div>
     </div>
-    <div class="grid">
+    <div class="grid" id="grid">
       <div class="header-months">
-        <div v-for="(month, index) in months" :key="index" class="month-header" :style="{ width: month.width + 'px' }">
+        <div class="month-header" v-for="(month, index) in months" :key="index" :style="{ width: month.width + 'px' }">
           {{ month.name }}
         </div>
       </div>
-      <div class="task" v-for="(task, index) in matrix" :data-position="task.position" :data-id="task.id" :key="index">
-        <div v-for="day in taskDays(index)" :key="day.date" :data-date="parseDate(day)" :class="[{ 'today': isToday(day) }, 'cell']">&nbsp;</div>
-      </div>
     </div>
-    
+
     <button class="add-task">Agregar fila</button>
     <button class="add-task">Agregar Tarea</button>
-    <div id="context-menu" style="display: none;">
+    <div id="context-menu" style="display: none">
       <ul>
         <li id="delete-period">Borrar</li>
         <li id="change-color">
           Cambiar Color
-          <input id="color-picker" type="color">
+          <input id="color-picker" type="color" />
         </li>
         <li id="create-interrelation">Crear interrelación</li>
       </ul>
     </div>
     <footer>
-      <div class="footer">
-      </div>
+      <div class="footer"></div>
     </footer>
   </div>
 </template>
 
+
 <script>
-import axios from 'axios';
+import axios from "axios";
 
 export default {
+  watch: {},
   name: "App",
   data() {
     return {
@@ -88,10 +86,14 @@ export default {
 
       for (let i = 0; i < this.years.length; i++) {
         for (let j = 0; j < 12; j++) {
-          const month = new Date(this.years[i].year, j).toLocaleString("default", {
-            month: "long",
-          });
-          const capitalizedMonth = month.charAt(0).toUpperCase() + month.slice(1);
+          const month = new Date(this.years[i].year, j).toLocaleString(
+            "default",
+            {
+              month: "long",
+            }
+          );
+          const capitalizedMonth =
+            month.charAt(0).toUpperCase() + month.slice(1);
           const monthDays = new Date(this.years[i].year, j + 1, 0).getDate();
           let weekends = 0;
           for (let k = 1; k <= monthDays; k++) {
@@ -103,14 +105,14 @@ export default {
           const width = (monthDays - weekends) * 19;
           const monthElement = {
             name: capitalizedMonth,
-            width: width + lastDaysOfTheMonth[i]
+            width: width + lastDaysOfTheMonth[i],
           };
           months.push(monthElement);
         }
       }
       this.months = months;
     },
-    
+
     createHeader() {
       const lastDaysOfTheMonth = this.findLastDaysOfTheMonth();
       const divHeader = document.createElement("div");
@@ -147,82 +149,68 @@ export default {
       grid.appendChild(divHeader);
     },
 
-    createTasks() {  
-      axios.get('http://localhost:8000/read_task/')
-        .then(response => {
-          console.log(response.data); // check response data
-        
-          if (!Array.isArray(response.data.tasks)) {
-            console.log("Tasks not found in response data");
-            return;
-          }
-        
+    createTasks() {
+      axios
+        .get("http://localhost:8000/read_task/")
+        .then((response) => {
           for (let i = 0; i < response.data.tasks.length; i++) {
             let task = response.data.tasks[i];
-            this.drawTasks(task); // pass one argument
+            this.drawTasks(task); // pasamos la tarea actual como argumento
           }
         })
-        .catch(error => {
+        .catch((error) => {
           console.log(error);
         });
     },
 
-    drawTasks(response) {
-      if (!this.matrix) {
-        this.matrix = [];
-        console.log("Matriz vacia");
-      }else{
-        console.log("La matrix no esta vacia")
-      }   
-      const today = new Date(); 
-      for (let i = 0; i < response.tasks.length; i++) {
-        let task = response.tasks[i];
-        let taskDays = [];
-        for (let j = 0; j < this.years.length; j++) {
-          for (let k = 0; k < this.years[j].months.length; k++) {
-            let month = this.years[j].months[k];
-            for (let l = 0; l < month.length; l++) {
-              let day = month[l];
-              day.dateString = new Date(this.years[j].year, k, l + 1).toDateString();
-              taskDays.push(day);
-            }
+    drawTasks(task) {
+      const today = new Date();
+      let taskDays = [];
+      for (let j = 0; j < this.years.length; j++) {
+        for (let k = 0; k < this.years[j].months.length; k++) {
+          let month = this.years[j].months[k];
+          for (let l = 0; l < month.length; l++) {
+            let day = month[l];
+            day.dateString = new Date(
+              this.years[j].year,
+              k,
+              l + 1
+            ).toDateString();
+            taskDays.push(day);
           }
         }
-        this.matrix.push(taskDays);
-        let div_task = document.createElement("div");
-        div_task.setAttribute("class", "task");
-        div_task.setAttribute("data-position", task.position);
-        div_task.setAttribute("data-id", task.id);
-        for (let j = 0; j < this.matrix[i].length; j++) {
-          let day = this.matrix[i][j];
-          let cell = document.createElement("div");
-          cell.setAttribute("class", "cell");
-          cell.setAttribute("data-date", this.parseDate(day));
-
-          if (day.getDate() === today.getDate() && day.getMonth() === today.getMonth() && day.getFullYear() === today.getFullYear()) {
-            cell.classList.add("today"); // si el día coincide con hoy, agregamos la clase 'today'
-          }
-
-          div_task.appendChild(cell);
-        }
-
-        div_task.addEventListener("mousemove", () => {
-          div_task.classList.add("hovered");
-        });
-        div_task.addEventListener("mouseleave", () => {
-          div_task.classList.remove("hovered");
-        });
-        this.$refs.grid.appendChild(div_task);
       }
+      this.matrix.push(taskDays);
+      let div_task = document.createElement("div");
+      div_task.setAttribute("class", "task");
+      div_task.setAttribute("data-position", task.position);
+      div_task.setAttribute("data-id", task.id);
+      for (let j = 0; j < this.matrix[this.matrix.length - 1].length; j++) {
+        // usamos this.matrix.length - 1 para acceder a la última tarea agregada
+        let day = this.matrix[this.matrix.length - 1][j]; // usamos this.matrix.length - 1 para acceder a la última tarea agregada
+        let cell = document.createElement("div");
+        cell.setAttribute("class", "cell");
+        cell.setAttribute("data-date", this.parseDate(day));
+
+        if (
+          day.getDate() === today.getDate() &&
+          day.getMonth() === today.getMonth() &&
+          day.getFullYear() === today.getFullYear()
+        ) {
+          cell.classList.add("today"); // si el día coincide con hoy, agregamos la clase 'today'
+        }
+
+        div_task.appendChild(cell);
+      }
+
+      div_task.addEventListener("mousemove", () => {
+        div_task.classList.add("hovered");
+      });
+      div_task.addEventListener("mouseleave", () => {
+        div_task.classList.remove("hovered");
+      });
+      document.getElementById("grid")?.appendChild(div_task);
     },
-
-
-    
-    
-
-
-
-
 
     drawPeriodTasks() {
       // implementar
@@ -282,8 +270,8 @@ export default {
       const month = (dateObj.getMonth() + 1).toString().padStart(2, "0");
       const day = dateObj.getDate().toString().padStart(2, "0");
       return `${year}-${month}-${day}`;
-    }
-  }
+    },
+  },
 };
 </script>
 <style src="../../static/style.css"></style>
