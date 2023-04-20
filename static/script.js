@@ -41,34 +41,6 @@ function createMatrixDates(yearsRange) {
 
 }
 
-function createHeader() {
-  let div_header = $("<div class='header'>");
-  for (let i = 0; i < years.length; i++) {
-    let year = years[i];
-    for (let j = 0; j < year.months.length; j++) {
-      let month = year.months[j];
-      for (let k = 0; k < month.length; k++) {
-        let day = month[k];
-        let $dayElement = $("<div class='day-header' data-index='" + day.getDate() + "'>" + day.getDate() + "</div>");
-        if (day.getDate() == findLastDaysOfTheMonth()[j]) {
-          $dayElement.addClass("last-day");
-        }
-        const today = new Date();
-        if (
-          day.getDate() === today.getDate() &&
-          month[0].getMonth() === today.getMonth() &&
-          year.year === today.getFullYear()
-        ) {
-          $dayElement.addClass("today");
-        }
-        div_header.append($dayElement);
-      }
-      $("<div class='month-border'></div>").appendTo(div_header);
-    }
-  }
-  $(".grid").append(div_header);
-}
-
 function createHeaderMonths() {
   let years = [{ year: 2023 }, { year: 2024 }];
 
@@ -107,6 +79,34 @@ function createHeaderMonths() {
   $(".grid").append(div_header);
 }
 
+function createHeader() {
+  let div_header = $("<div class='header'>");
+  for (let i = 0; i < years.length; i++) {
+    let year = years[i];
+    for (let j = 0; j < year.months.length; j++) {
+      let month = year.months[j];
+      for (let k = 0; k < month.length; k++) {
+        let day = month[k];
+        let $dayElement = $("<div class='day-header' data-index='" + day.getDate() + "'>" + day.getDate() + "</div>");
+        if (day.getDate() == findLastDaysOfTheMonth()[j]) {
+          $dayElement.addClass("last-day");
+        }
+        const today = new Date();
+        if (
+          day.getDate() === today.getDate() &&
+          month[0].getMonth() === today.getMonth() &&
+          year.year === today.getFullYear()
+        ) {
+          $dayElement.addClass("today");
+        }
+        div_header.append($dayElement);
+      }
+      $("<div class='month-border'></div>").appendTo(div_header);
+    }
+  }
+  $(".grid").append(div_header);
+}
+
 function createTasks() {  
   $.ajax({
     url: '/read_task',
@@ -136,7 +136,7 @@ function drawTasks(response) {
     div_task.attr("data-id", task.id);
     for (let j = 0; j < matrix[i].length; j++) {
       let day = matrix[i][j];
-      let $cell = $("<div class='cell' data-date='" + parseDate(day) + "'>&nbsp;</div>");
+      let $cell = $("<div class='cell'  data-date='" + parseDate(day) + "'>&nbsp;</div>");
       
       if (day.getDate() === today.getDate() && day.getMonth() === today.getMonth() && day.getFullYear() === today.getFullYear()) {
         $cell.addClass("today"); // si el día coincide con hoy, agregamos la clase 'today'
@@ -155,7 +155,9 @@ function drawTasks(response) {
 }
 
 function listenToCreatePeriods() {
+  console.log(document);
   $(document).on("click", ".cell", function (event) {
+    
     if ($(this).find(".period").length === 0) {
       let dayIndex = $(this).attr("data-date");
       let currentTask = $(this).parent().attr("data-id");

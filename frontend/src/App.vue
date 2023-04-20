@@ -6,7 +6,12 @@
     </div>
     <div class="grid" id="grid">
       <div class="header-months">
-        <div class="month-header" v-for="(month, index) in months" :key="index" :style="{ width: month.width + 'px' }">
+        <div
+          class="month-header"
+          v-for="(month, index) in months"
+          :key="index"
+          :style="{ width: month.width + 'px' }"
+        >
           {{ month.name }}
         </div>
       </div>
@@ -30,7 +35,6 @@
   </div>
 </template>
 
-
 <script>
 import axios from "axios";
 
@@ -51,11 +55,11 @@ export default {
     this.createHeaderMonths();
     this.createHeader();
     this.createTasks();
+    this.getPeriods();
+    this.listenToCreatePeriods();
     this.drawPeriodTasks();
     this.listenToMoveRight();
     this.listenToMoveLeft();
-    this.listenToCreatePeriods();
-    this.getPeriods();
     this.menu();
   },
   methods: {
@@ -81,7 +85,6 @@ export default {
     },
 
     createHeaderMonths() {
-      const lastDaysOfTheMonth = this.findLastDaysOfTheMonth();
       const months = [];
 
       for (let i = 0; i < this.years.length; i++) {
@@ -103,11 +106,7 @@ export default {
             }
           }
           const width = (monthDays - weekends) * 19;
-          const monthElement = {
-            name: capitalizedMonth,
-            width: width + lastDaysOfTheMonth[i],
-          };
-          months.push(monthElement);
+          months.push({ name: capitalizedMonth, width: width });
         }
       }
       this.months = months;
@@ -163,6 +162,63 @@ export default {
         });
     },
 
+    getPeriods() {
+      document.addEventListener("DOMContentLoaded", function () {
+        fetch("http://localhost:8000/get-periods/")
+          .then((response) => response.json())
+          .then((data) => {
+            data.periods.forEach((period) => {
+              const taskElements = document.querySelectorAll(
+                `.task[data-id="${period.task_id}"]`
+              );
+              const cell = Array.from(taskElements)
+                .map(
+                  (taskElement) =>
+                    taskElement.querySelectorAll(
+                      `.cell[data-date="${period.start}"]`
+                    )[0]
+                )
+                .filter((cellElement) => cellElement)[0];
+
+              if (cell) {
+                const start = new Date(period.start);
+                const end = new Date(period.end);
+                const cells = taskElements[0].querySelectorAll(".cell");
+                cells.forEach((cellElement) => {
+                  const cellDate = new Date(cellElement.dataset.date);
+                  if (cellDate >= start && cellDate <= end) {
+                    cellElement.classList.add("occupied");
+                  }
+                });
+
+                const periodDiv = document.createElement("div");
+                periodDiv.classList.add("period", "resizable");
+                periodDiv.style.backgroundColor = period.color;
+                periodDiv.dataset.id = period.id;
+                periodDiv.dataset.startDay = period.start;
+                periodDiv.dataset.endDay = period.end;
+                periodDiv.dataset.position = taskElements[0].dataset.position;
+
+                const cellWidth = cell.offsetWidth;
+
+                const startCellIndex = Array.from(cells).indexOf(cell);
+                const endCellIndex = Array.from(cells).findIndex(
+                  (cellElement) => cellElement.dataset.date === period.end
+                );
+                const numCells = endCellIndex - startCellIndex + 1;
+                const width = numCells * cellWidth - 1;
+                periodDiv.style.width = width + "px";
+
+                cell.appendChild(periodDiv);
+              }
+            });
+          })
+          .catch((error) => {
+            console.log("Error retrieving periods data." + error);
+          });
+      });
+    },
+
     drawTasks(task) {
       const today = new Date();
       let taskDays = [];
@@ -172,7 +228,10 @@ export default {
           for (let l = 0; l < month.length; l++) {
             let day = month[l];
             day.dateString = new Date(
-              this.years[j].year,k,l + 1).toDateString();
+              this.years[j].year,
+              k,
+              l + 1
+            ).toDateString();
             taskDays.push(day);
           }
         }
@@ -188,6 +247,7 @@ export default {
         let cell = document.createElement("div");
         cell.setAttribute("class", "cell");
         cell.setAttribute("data-date", this.parseDate(day));
+        cell.innerHTML = "&nbsp;";
 
         if (
           day.getDate() === today.getDate() &&
@@ -210,22 +270,136 @@ export default {
     },
 
     drawPeriodTasks() {
-      // implementar
+      axios
+        .get("http://localhost:8000/read_task/")
+        .then((response) => {
+          for (let i = 0; i < response.data.tasks.length; i++) {
+            let task = response.data.tasks[i];
+            let div_period_tasks = document.createElement("div");
+            div_period_tasks.setAttribute("class", "tasks-periods");
+            div_period_tasks.setAttribute("data-id", task.id);
+            div_period_tasks.setAttribute("data-position", task.position);
+            div_period_tasks.innerHTML = `<span class='task-name'>${task.name}</span>`;
+
+            div_period_tasks.addEventListener("mousedown", function () {
+              if (event.button === 0) {
+                // left mouse button
+                event.preventDefault();
+                this.setAttribute("contenteditable", "true");
+                this.focus();
+                const textLength = this.textContent.length;
+                const sel = window.getSelection();
+                const range = document.createRange();
+                range.setStart(sel.focusNode, textLength);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                this.style.cursor = "move";
+              }
+            });
+
+            div_period_tasks.addEventListener("mouseup", function () {
+              this.style.cursor = "auto";
+            });
+
+            // Get the task ID from the data-id attribute
+
+            let task_id = div_period_tasks.getAttribute("data-id");
+            // Attach an event listener to update the task name when the user edits the div
+            div_period_tasks.addEventListener("input", function () {
+              let taskRowName = this.textContent;
+
+              console.log(task_id);
+              axios
+                .post("http://localhost:8000/update_task_name/", {
+                  id: task_id,
+                  name: taskRowName,
+                })
+                .then((response) => {
+                  console.log(response.data.message);
+                })
+                .catch((error) => {
+                  console.log(error);
+                });
+            });
+
+            document
+              .querySelector(".tasks-container")
+              .appendChild(div_period_tasks);
+          }
+          this.sortTaskperiods();
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
+
+    sortTaskperiods() {
+      //Iplementar
+    },
+
+    listenToCreatePeriods() {
+      console.log(document);
+      document.addEventListener("click", function (event) {
+        if (
+          event.target.matches(".cell") &&
+          !event.target.querySelector(".period")
+        ) {
+          let dayIndex = event.target.getAttribute("data-date");
+          let currentTask = event.target.parentElement.getAttribute("data-id");
+          let data = {
+            name: "", // vacio por defecto
+            color: "blue", // blue por defecto
+            start: dayIndex,
+            end: dayIndex, // igual al start por defecto
+            task_id: currentTask,
+          };
+          console.log(data);
+          axios
+            .post("http://localhost:8000/create-period/", data)
+            .then(() => {
+              let period = document.createElement("div");
+              period.setAttribute("class", "period resizable");
+              period.innerHTML = `<span class='left-span'></span><span draggable='true' class='center-span drag-handle'></span><span class='right-span'></span>`;
+              period.setAttribute("data-day-start", dayIndex);
+              period.setAttribute("data-color", "blue"); // set the default color
+              event.target.appendChild(period);
+              this.dragAndDrop();
+            })
+            .catch((error) => {
+              console.log(error.response.data);
+            });
+        }
+      });
+    },
+
+    dragAndDrop() {
+      // Algo
+    },
+
     listenToMoveRight() {
       // implementar
     },
     listenToMoveLeft() {
       // implementar
     },
-    listenToCreatePeriods() {
-      // implementar
-    },
-    getPeriods() {
-      // implementar
-    },
+
     menu() {
       // implementar
+    },
+
+    addDaysToDate(startDate, numDays) {
+      let endDate = new Date(startDate);
+      let numWeekendDays = 0;
+      while (numDays > 0) {
+        endDate.setDate(endDate.getDate() + 1);
+        if (endDate.getDay() === 6 || endDate.getDay() === 0) {
+          numWeekendDays = numWeekendDays + 1;
+        } else {
+          numDays--;
+        }
+      }
+      return endDate.toISOString().substring(0, 10);
     },
 
     findLastDaysOfTheWeek() {
