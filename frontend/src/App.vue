@@ -37,6 +37,7 @@
 
 <script>
 import axios from "axios";
+// import Sortable from 'sortablejs';
 
 export default {
   watch: {},
@@ -193,6 +194,20 @@ export default {
 
                 const periodDiv = document.createElement("div");
                 periodDiv.classList.add("period", "resizable");
+
+                const leftSpan = document.createElement("span");
+                leftSpan.classList.add("left-span");
+                periodDiv.appendChild(leftSpan);
+
+                const centerSpan = document.createElement("span");
+                centerSpan.classList.add("center-span", "drag-handle");
+                centerSpan.setAttribute("draggable", "true");
+                periodDiv.appendChild(centerSpan);
+
+                const rightSpan = document.createElement("span");
+                rightSpan.classList.add("right-span");
+                periodDiv.appendChild(rightSpan);
+
                 periodDiv.style.backgroundColor = period.color;
                 periodDiv.dataset.id = period.id;
                 periodDiv.dataset.startDay = period.start;
@@ -335,51 +350,138 @@ export default {
     },
 
     sortTaskperiods() {
-      //Iplementar
+      // implementar
     },
 
     listenToCreatePeriods() {
       console.log(document);
       document.addEventListener("click", function (event) {
-        if (
-          event.target.matches(".cell") &&
-          !event.target.querySelector(".period")
-        ) {
-          let dayIndex = event.target.getAttribute("data-date");
-          let currentTask = event.target.parentElement.getAttribute("data-id");
-          let data = {
-            name: "", // vacio por defecto
-            color: "blue", // blue por defecto
-            start: dayIndex,
-            end: dayIndex, // igual al start por defecto
-            task_id: currentTask,
-          };
-          console.log(data);
-          axios
-            .post("http://localhost:8000/create-period/", data)
-            .then(() => {
-              let period = document.createElement("div");
-              period.setAttribute("class", "period resizable");
-              period.innerHTML = `<span class='left-span'></span><span draggable='true' class='center-span drag-handle'></span><span class='right-span'></span>`;
-              period.setAttribute("data-day-start", dayIndex);
-              period.setAttribute("data-color", "blue"); // set the default color
-              event.target.appendChild(period);
-              this.dragAndDrop();
-            })
-            .catch((error) => {
-              console.log(error.response.data);
-            });
+        if (event.target.classList.contains("cell")) {
+          if (!event.target.querySelector(".period")) {
+            let dayIndex = event.target.dataset.date;
+            let currentTask = parseInt(event.target.parentNode.dataset.id);
+            console.log(currentTask);
+            let data = {
+              name: "", // vacío por defecto
+              color: "blue", // blue por defecto
+              start: dayIndex,
+              end: dayIndex, // igual al start por defecto
+              task_id: currentTask, // ninguna tarea por defecto
+            };
+            console.log(data);
+            axios
+              .post("http://localhost:8000/create-period/", data)
+              .then(() => {
+                let period = document.createElement("div");
+                period.classList.add("period", "resizable");
+                period.innerHTML =
+                  "<span class='left-span'></span><span  draggable='true' class='center-span drag-handle'></span><span class='right-span'></span>";
+                period.dataset.dayStart = dayIndex;
+                period.dataset.color = "blue";
+                event.target.appendChild(period);
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+          }
         }
       });
     },
 
     dragAndDrop() {
-      // Algo
+      // implementar
     },
 
     listenToMoveRight() {
-      // implementar
+
+      document.addEventListener("mousedown", (event) => {
+        if (event.target.classList.contains("right-span")) {
+          let activeRedDiv = event.target.closest(".period");
+          activeRedDiv.classList.add("active-right");
+          let startPosition = event.pageX;
+          let startWidth = activeRedDiv.offsetWidth;
+          let newWidth = 0;
+          let startDay = activeRedDiv.getAttribute("data-start-day");
+          let currentDay = new Date(activeRedDiv.getAttribute("data-end-day"));
+
+          // Actualiza startDay si el período ya ha sido estirado antes
+          if (
+            activeRedDiv.getAttribute("data-start-day") !==
+            activeRedDiv.getAttribute("data-end-day")
+          ) {
+            startDay = currentDay.toISOString().substring(0, 10);
+          }
+
+          const mousemoveHandler = (event) => {
+            let distance = event.pageX - startPosition;
+            let distanceInCells = Math.round(
+              distance / document.querySelector(".cell").offsetWidth
+            );
+
+            // Calcula la nueva anchura de la barra
+            newWidth = startWidth + distanceInCells * 20;
+
+            // Si la nueva anchura es menor que la anchura actual y tiene menos de 19px, ajusta la fecha final para que sea igual a la fecha de inicio
+            if (newWidth < startWidth && newWidth <= 19) {
+              newWidth = 19;
+              activeRedDiv.setAttribute("data-end-day", startDay);
+              activeRedDiv.style.width = `${newWidth}px`;
+              return;
+            }
+
+            let isBlocked = false;
+            let nextRedDivPosition = activeRedDiv.offsetLeft + newWidth;
+
+            // Comprueba si hay otro período en el mismo task
+            document.querySelectorAll(".period").forEach((el) => {
+              if (
+                el.getAttribute("data-task-id") ===
+                  activeRedDiv.getAttribute("data-task-id") &&
+                el.offsetTop === activeRedDiv.offsetTop &&
+                el.offsetLeft > activeRedDiv.offsetLeft &&
+                el.offsetLeft < nextRedDivPosition
+              ) {
+                isBlocked = true;
+                return false;
+              }
+            });
+
+            if (!isBlocked) {
+              let newEndDay = this.addDaysToDate(startDay, distanceInCells);
+
+              const mouseupHandler = () => {
+                // Actualiza el campo 'end' del objeto 'period' en la base de datos al soltar el click
+                axios
+                  .post(`http://localhost:8000/update_period_end/${activeRedDiv.dataset.id}/`, {
+                    end: newEndDay,
+                  })
+                  .then((response) => {
+                    if (response.data.success) {
+                      console.log("Period end updated successfully.");
+                    } else {
+                      console.log("Failed to update period end.");
+                    }
+                  })
+                  .catch((error) => console.log(error));
+
+                document.removeEventListener("mousemove", mousemoveHandler);
+                document.removeEventListener("mouseup", mouseupHandler);
+              };
+
+              document.addEventListener("mouseup", mouseupHandler);
+
+              activeRedDiv.setAttribute("data-end-day", newEndDay);
+              activeRedDiv.style.width = `${newWidth}px`;
+            }
+
+            currentDay = new Date(activeRedDiv.getAttribute("data-end-day"));
+          };
+
+          document.addEventListener("mousemove", mousemoveHandler);
+        }
+      });
     },
+
     listenToMoveLeft() {
       // implementar
     },

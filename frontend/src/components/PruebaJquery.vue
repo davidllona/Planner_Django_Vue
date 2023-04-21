@@ -19,7 +19,7 @@
   import $ from 'jquery';
   
   $(document).ready(function() {
-    // código de jQuery aquí
+    alert("Hey")
   });
   </script>
   

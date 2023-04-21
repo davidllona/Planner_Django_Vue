@@ -6,6 +6,7 @@ from django.db import models
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
+import json
 from django.contrib.auth import authenticate, login
 
 # Create your views here.
@@ -31,17 +32,17 @@ class PeriodCreateView(View):
         return super(PeriodCreateView, self).dispatch(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
-        data = request.POST
+        data = request.body
+        data = json.loads(data)
+        print(data)
         name = data.get('name', '') # vacio por defecto
         color = data.get('color', 'blue') # blue por defecto
         start = data.get('start', '')
         end = data.get('end', start) # igual al start por defecto
-        task_id = data.get('task_id', '')
+        task_id = data.get('task_id', None)
         task = Task.objects.get(id=task_id)
         period = Period(name=name, color=color, start=start, end=end, task_id=task.id)
-
         period.save()
-
         return JsonResponse({'status': 'success', 'message': 'Period created successfully!'})
 
 class GetPeriodsFromDBView(View):
@@ -69,9 +70,13 @@ class UpdateTaskName(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super(UpdateTaskName, self).dispatch(request, *args, **kwargs)
+    
     def post(self, request):
-        task_id = request.POST.get('id')
-        task_name = request.POST.get('name')
+        data = request.body
+        data = json.loads(data)
+        task_id = data.get('id')
+        task_name = data.get('name')
+        
         try:
             task = Task.objects.get(id=task_id)
             task.name = task_name
@@ -98,11 +103,12 @@ class PeriodDeleteView(View):
 class UpdatePeriodColor(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
-        return super(UpdatePeriodColor, self).dispatch(request, *args, **kwargs)
+        return super(UpdatePeriodColor, self).dispatch(request, *args, **kwargs)        
     def post(self, request, pk):
         try:
             period = Period.objects.get(id=pk)
-            color = request.POST.get('color')
+            data = json.loads(request.body)
+            color = data.get('color')
             period.color = color
             period.save()
             return JsonResponse({'success': True})
@@ -113,10 +119,12 @@ class UpdatePeriodEnd(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
         return super(UpdatePeriodEnd, self).dispatch(request, *args, **kwargs)
+        
     def post(self, request, pk):
         try:
             period = Period.objects.get(id=pk)
-            end = request.POST.get('end')
+            data = json.loads(request.body)
+            end = data.get('end')
             period.end = end
             period.save()
             return JsonResponse({'success': True})

@@ -161,6 +161,7 @@ function listenToCreatePeriods() {
     if ($(this).find(".period").length === 0) {
       let dayIndex = $(this).attr("data-date");
       let currentTask = $(this).parent().attr("data-id");
+      console.log(currentTask);
       let data = {
         'name': '', // vacio por defecto
         'color': 'blue', // blue por defecto
@@ -186,7 +187,6 @@ function listenToCreatePeriods() {
       });
     }
   });
-
   dragAndDrop();
 }
 
