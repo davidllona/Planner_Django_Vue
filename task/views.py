@@ -1,13 +1,13 @@
+
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404
 from django.views import View
 from .models import Task, Period
-from django.db import models
+from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 import json
-from django.contrib.auth import authenticate, login
 
 # Create your views here.
 class HomeView(View):
@@ -139,7 +139,8 @@ class UpdatePeriodStart(View):
     def post(self, request, pk):
         try:
             period = Period.objects.get(id=pk)
-            start = request.POST.get('start')
+            data = json.loads(request.body)
+            start = data['start']
             period.start = start
             period.save()
             return JsonResponse({'success': True})
@@ -212,19 +213,25 @@ class TaskListView(View):
                 'position': task.position,
             })
         return JsonResponse({'tasks': task_list})
-
     
-class LoginView(View):
-    @method_decorator(csrf_exempt)
-    def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(request, *args, **kwargs)
 
-    def post(self, request):
+
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth import authenticate, login
+
+def login_view(request):
+    if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return JsonResponse({'success': True, 'user': user.username})
+            return redirect('index') # redirecciona a la página de inicio
         else:
-            return JsonResponse({'success': False})
+            return render(request, 'login.html', {'error': 'Usuario o contraseña incorrectos.'})
+    return render(request, 'login.html')
+
+def index(request):
+    return render(request, 'index.html')

@@ -1,5 +1,7 @@
 from django.urls import path
-from .views import HomeView, GetTasksFromDBView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor, PeriodDeleteView,UpdatePeriodEnd, UpdatePeriodStart,UpdateTaskPosition, UpdatePeriodView, TaskListView, LoginView
+from . import views
+from .views import login_view,index
+from .views import HomeView, GetTasksFromDBView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor, PeriodDeleteView,UpdatePeriodEnd, UpdatePeriodStart,UpdateTaskPosition, UpdatePeriodView, TaskListView
 urlpatterns = [
     path('', HomeView.as_view(), name='index'),
     path('read_task/', GetTasksFromDBView.as_view(), name='read_task'),
@@ -13,7 +15,11 @@ urlpatterns = [
     path('update_task_position/', UpdateTaskPosition.as_view(), name='update_task_position'),
     path('update_period/', UpdatePeriodView.as_view(), name='update_period'),
     path('api/tasks/', TaskListView.as_view(), name='task-list'),
-    path('api/login/', LoginView.as_view(), name='login'),
+path('', login_view, name='login'), # define la URL raíz como la vista de inicio de sesión
+path('login/', login_view, name='login'), # define la URL para la vista de inicio de sesión
+path('home/', index, name='index'), # define la URL para la página de inicio
+
+    
 ]
 
 
