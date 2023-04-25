@@ -395,7 +395,7 @@
   </script>
   
   
-  <style></style>
+  <style src="../assets/style.css"></style>
   
   
   

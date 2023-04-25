@@ -54,9 +54,16 @@ MIDDLEWARE = [
 
 ]
 CORS_ORIGIN_ALLOW_ALL = True
+
+CORS_ORIGIN_WHITELIST = [
+    'http://localhost:8080',
+    # aquí puedes agregar otros dominios que quieras permitir
+]
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:8080',
 ]
+
+
 
 ROOT_URLCONF = 'planner.urls'
 
