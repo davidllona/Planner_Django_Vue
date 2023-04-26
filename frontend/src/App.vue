@@ -3,40 +3,49 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
   />
-  <div class="login-box">
-    <img
-      src="../src/assets/logo-practikalia-neg-fit.svg"
-      alt="Imagen practikalia"
-    />
-    <h2>Login</h2>
-    <form @submit.prevent="login">
-      <div class="user-box">
-        <i id="user" class="fa fa-user"></i>
-        <input
-          type="text"
-          name="username"
-          v-model="username"
-          required=""
-          autocomplete="username"
+  <div>
+    <template v-if="loggedIn">
+      <router-view></router-view>
+    </template>
+    <template v-else>
+      <div class="login-container">
+      <div class="login-box">
+        <img
+          src="../src/assets/logo-practikalia-neg-fit.svg"
+          alt="Imagen practikalia"
         />
-        <label>Usuario</label>
+        <h3>LOGIN</h3>
+        <form @submit.prevent="login">
+          <div class="user-box">
+            <i id="user" class="fa fa-user"></i>
+            <input
+              type="text"
+              name="username"
+              v-model="username"
+              required=""
+              autocomplete="username"
+            />
+            <label>Usuario</label>
+          </div>
+          <div class="user-box">
+            <i id="lock" class="fa fa-lock"></i>
+            <input
+              name="password"
+              v-model="password"
+              v-bind:type="showPassword ? 'text' : 'password'"
+              required
+              autocomplete="current-password"
+            />
+            <label>Contraseña</label>
+            <i id="eye" class="fa fa-eye"></i>
+          </div>
+          <a class="forgot-pw" href="#">Recuperar contraseña</a>
+          <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+          <button class="enter">Entrar</button>
+        </form>
       </div>
-      <div class="user-box">
-        <i id="lock" class="fa fa-lock"></i>
-        <input
-          name="password"
-          v-model="password"
-          v-bind:type="showPassword ? 'text' : 'password'"
-          required
-          autocomplete="current-password"
-        />
-        <label>Contraseña</label>
-        <i id="eye" class="fa fa-eye"></i>
       </div>
-      <a class="forgot-pw" href="#">Recuperar contraseña</a>
-      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-      <a class="enter" href="#" @click="login">Entrar</a>
-    </form>
+    </template>
   </div>
 </template>
 
@@ -51,7 +60,8 @@ export default {
       username: "",
       password: "",
       errorMessage: "",
-      showPassword: false, // Agregando la propiedad showPassword
+      showPassword: false,
+      loggedIn: false, // variable que indica si el usuario ha iniciado sesión
     };
   },
   methods: {
@@ -66,8 +76,8 @@ export default {
           console.log(response);
           if (response.data.success) {
             console.log("Usuarioooooo: " + this.username + "" + this.password);
-            this.$router.push({ name: "HomePage" });
-
+            this.loggedIn = true; // el usuario ha iniciado sesión
+            this.$router.push("/home");
           } else {
             console.log("Usuario: " + this.username + "" + this.password);
             this.errorMessage =
@@ -75,7 +85,6 @@ export default {
           }
         })
         .catch((error) => {
-          // handle error
           console.log(error);
         });
     },
@@ -83,9 +92,7 @@ export default {
 };
 </script>
 
-<style>
-/* styles here */
-</style>
+
 
 <style>
 html {
@@ -99,17 +106,29 @@ body {
   background: linear-gradient(#141e30, #243b55);
 }
 
+.login-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url("./assets/background-gray.ea099f94f006.jpg");
+  background-color: rgba(0, 0, 0, 0.5);
+  background-size: cover;
+}
+
 .login-box {
   position: absolute;
   top: 50%;
   left: 50%;
-  width: 400px;
+  width: 450px;
   padding: 40px;
   transform: translate(-50%, -50%);
-  background: rgba(0, 0, 0, 0.5);
   box-sizing: border-box;
   box-shadow: 0 15px 25px rgba(0, 0, 0, 0.6);
   border-radius: 10px;
+  background-color: rgb(26 26 26 / 83%);
+  
 }
 .login-box #user {
   position: absolute;
@@ -117,6 +136,7 @@ body {
   left: 0;
   transform: translateY(-50%);
   color: #fff;
+  font-size: 20px;
 }
 .login-box #lock {
   position: absolute;
@@ -124,12 +144,14 @@ body {
   left: 0;
   transform: translateY(-50%);
   color: #fff;
+  font-size: 20px;
 }
-.login-box h2 {
+.login-box h3 {
   margin: 10% 0 30px;
   padding: 0;
+  font-size: 20px;
+  letter-spacing: 2px;
   color: #fff;
-  text-align: center;
 }
 
 .login-box .user-box {
@@ -137,11 +159,11 @@ body {
 }
 
 .login-box .user-box input {
-  width: 88%;
-  padding: 10px 20px;
+  width: 100%;
+  padding: 10px 30px;
   font-size: 16px;
   color: #fff;
-  margin-bottom: 30px;
+  margin-bottom: 35px;
   border: none;
   border-bottom: 1px solid #fff;
   outline: none;
@@ -151,7 +173,7 @@ body {
 .login-box .user-box label {
   position: absolute;
   top: 0;
-  margin-left: 20px;
+  margin-left: 30px;
   left: 0;
   padding: 10px 0px;
   font-size: 16px;
@@ -165,13 +187,17 @@ body {
   top: -20px;
   left: 0;
   color: #fff;
-  font-size: 12px;
+  font-size: 11px;
 }
+.login-box .user-box input:focus {
+  border-bottom-color: #fff;
+}
+
 
 .login-box .enter {
   position: relative;
   display: inline-block;
-  padding: 5px;
+  padding: 12px;
   color: #fff;
   font-size: 16px;
   text-decoration: none;
@@ -182,17 +208,25 @@ body {
   letter-spacing: 4px;
   width: 100%;
   text-align: center;
+  border: transparent;
+  background: #d75083;
+  border-radius: 5px;
 }
 
 .login-box .forgot-pw {
   color: white;
   font-size: 15px;
 }
+.login-box .forgot-pw:hover {
+  color: rgb(170, 170, 170);
+  font-size: 15px;
+}
 
 .login-box .enter:hover {
-  background: #d75083;
+  background: #0069b4;
   color: #fff;
   border-radius: 5px;
+  cursor: pointer;
 }
 
 .login-box a span {
@@ -204,20 +238,22 @@ body {
   display: block;
   margin: 0 auto;
   width: 200px;
+  margin-bottom: 50px;
 }
 
 #eye {
   position: absolute;
-  top: 30%;
+  top: 27%;
   right: 0;
   transform: translateY(-50%);
   color: #fff;
   cursor: pointer;
+  font-size: 20px;
 }
 
 .error-message {
-  color: red;
-  font-size: 12px;
+  color: #ff6840;
+  font-size: 14px;
   margin-top: 15px;
 }
 </style>

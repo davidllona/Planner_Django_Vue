@@ -1,299 +1,140 @@
 <template>
-    <div class="ag-format-container">
-        <div class="ag-courses_box">
-          <div class="ag-courses_item">
-            <a href="#" class="ag-courses-item_link">
-              <div class="ag-courses-item_bg"></div>
-      
-              <div class="ag-courses-item_title">
-                UI/Web&amp;Graph design for teenagers 11-17&#160;years old
-              </div>
-      
-              <div class="ag-courses-item_date-box">
-                Start:
-                <span class="ag-courses-item_date">
-                  04.11.2022
-                </span>
-              </div>
-            </a>
-          </div>
-      
-          <div class="ag-courses_item">
-            <a href="#" class="ag-courses-item_link">
-              <div class="ag-courses-item_bg"></div>
-      
-              <div class="ag-courses-item_title">
-                UX/UI Web-Design&#160;+ Mobile Design
-              </div>
-      
-              <div class="ag-courses-item_date-box">
-                Start:
-                <span class="ag-courses-item_date">
-                  04.11.2022
-                </span>
-              </div>
-            </a>
-          </div>
-      
-          <div class="ag-courses_item">
-            <a href="#" class="ag-courses-item_link">
-              <div class="ag-courses-item_bg"></div>
-      
-              <div class="ag-courses-item_title">
-                Annual package "Product+UX/UI+Graph designer&#160;2022"
-              </div>
-      
-              <div class="ag-courses-item_date-box">
-                Start:
-                <span class="ag-courses-item_date">
-                  04.11.2022
-                </span>
-              </div>
-            </a>
-          </div>
-      
-          <div class="ag-courses_item">
-            <a href="#" class="ag-courses-item_link">
-              <div class="ag-courses-item_bg"></div>
-      
-              <div class="ag-courses-item_title">
-                Graphic Design
-              </div>
-      
-              <div class="ag-courses-item_date-box">
-                Start:
-                <span class="ag-courses-item_date">
-                  04.11.2022
-                </span>
-              </div>
-            </a>
-          </div>
-      
-          <div class="ag-courses_item">
-            <a href="#" class="ag-courses-item_link">
-              <div class="ag-courses-item_bg"></div>
-      
-              <div class="ag-courses-item_title">
-                Motion Design
-              </div>
-      
-              <div class="ag-courses-item_date-box">
-                Start:
-                <span class="ag-courses-item_date">
-                  30.11.2022
-                </span>
-              </div>
-            </a>
-          </div>
-      
-          <div class="ag-courses_item">
-            <a href="#" class="ag-courses-item_link">
-              <div class="ag-courses-item_bg"></div>
-      
-              <div class="ag-courses-item_title">
-                Front-end development&#160;+ jQuery&#160;+ CMS
-              </div>
-            </a>
-          </div>
-      
-          <div class="ag-courses_item">
-            <a href="#" class="ag-courses-item_link">
-              <div class="ag-courses-item_bg">
-              </div>
-              <div class="ag-courses-item_title">
-                Digital Marketing
-              </div>
-            </a>
-          </div>
-      
-          <div class="ag-courses_item">
-            <a href="#" class="ag-courses-item_link">
-              <div class="ag-courses-item_bg"></div>
-      
-              <div class="ag-courses-item_title">
-                Interior Design
-              </div>
-      
-              <div class="ag-courses-item_date-box">
-                Start:
-                <span class="ag-courses-item_date">
-                  31.10.2022
-                </span>
-              </div>
-            </a>
-          </div>
-      
-        </div>
-      </div>
+  <!-- CSS de Bootstrap -->
+<!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> -->
+  <section class="page-contain">
+    <a href="#" class="data-card">
+      <h3>Tareas</h3>
+      <p>Aqui podrás consultar tus tareas</p>
+      <span class="link-text">
+        Mas detalles
+      </span>
+    </a>
+    <a href="#" class="data-card">
+      <h3>Planner</h3>
+      <p>Añade, borra y edita tus tareas</p>
+      <span class="link-text">
+        Mas detalles
+      </span>
+    </a>
 
-
+    <a href="#" class="data-card">
+      <h3>Estadísticas</h3>
+      <p>Las estadisiticas sobre tus tareas</p>
+      <span class="link-text">
+        Mas detalles
+      </span>
+    </a>
+  </section>
 </template>
 
-
-
-
-
-
-
-<script></script>
-
-
-
-
-
+<script>
+export default {
+  
+};
+</script>
 
 <style>
-.ag-format-container {
-    width: 1142px;
-    margin: 0 auto;
-  }
-  
-  
-  body {
-    background-color: #000;
-  }
-  .ag-courses_box {
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-align: start;
-    -ms-flex-align: start;
-    align-items: flex-start;
-    -ms-flex-wrap: wrap;
-    flex-wrap: wrap;
-  
-    padding: 50px 0;
-  }
-  .ag-courses_item {
-    -ms-flex-preferred-size: calc(33.33333% - 30px);
-    flex-basis: calc(33.33333% - 30px);
-  
-    margin: 0 15px 30px;
-  
-    overflow: hidden;
-  
-    border-radius: 28px;
-  }
-  .ag-courses-item_link {
-    display: block;
-    padding: 30px 20px;
-    background-color: #121212;
-  
-    overflow: hidden;
-  
-    position: relative;
-  }
-  .ag-courses-item_link:hover,
-  .ag-courses-item_link:hover .ag-courses-item_date {
-    text-decoration: none;
-    color: #FFF;
-  }
-  .ag-courses-item_link:hover .ag-courses-item_bg {
-    -webkit-transform: scale(10);
-    -ms-transform: scale(10);
-    transform: scale(10);
-  }
-  .ag-courses-item_title {
-    min-height: 87px;
-    margin: 0 0 25px;
-  
-    overflow: hidden;
-  
-    font-weight: bold;
-    font-size: 30px;
-    color: #FFF;
-  
-    z-index: 2;
-    position: relative;
-  }
-  .ag-courses-item_date-box {
-    font-size: 18px;
-    color: #FFF;
-  
-    z-index: 2;
-    position: relative;
-  }
-  .ag-courses-item_date {
-    font-weight: bold;
-    color: #f9b234;
-  
-    -webkit-transition: color .5s ease;
-    -o-transition: color .5s ease;
-    transition: color .5s ease
-  }
-  .ag-courses-item_bg {
-    height: 128px;
-    width: 128px;
-    background-color: #f9b234;
-  
-    z-index: 1;
-    position: absolute;
-    top: -75px;
-    right: -75px;
-  
-    border-radius: 50%;
-  
-    -webkit-transition: all .5s ease;
-    -o-transition: all .5s ease;
-    transition: all .5s ease;
-  }
-  .ag-courses_item:nth-child(2n) .ag-courses-item_bg {
-    background-color: #3ecd5e;
-  }
-  .ag-courses_item:nth-child(3n) .ag-courses-item_bg {
-    background-color: #e44002;
-  }
-  .ag-courses_item:nth-child(4n) .ag-courses-item_bg {
-    background-color: #952aff;
-  }
-  .ag-courses_item:nth-child(5n) .ag-courses-item_bg {
-    background-color: #cd3e94;
-  }
-  .ag-courses_item:nth-child(6n) .ag-courses-item_bg {
-    background-color: #4c49ea;
-  }
-  
-  
-  
-  @media only screen and (max-width: 979px) {
-    .ag-courses_item {
-      -ms-flex-preferred-size: calc(50% - 30px);
-      flex-basis: calc(50% - 30px);
-    }
-    .ag-courses-item_title {
-      font-size: 24px;
-    }
-  }
-  
-  @media only screen and (max-width: 767px) {
-    .ag-format-container {
-      width: 96%;
-    }
-  
-  }
-  @media only screen and (max-width: 639px) {
-    .ag-courses_item {
-      -ms-flex-preferred-size: 100%;
-      flex-basis: 100%;
-    }
-    .ag-courses-item_title {
-      min-height: 72px;
-      line-height: 1;
-  
-      font-size: 24px;
-    }
-    .ag-courses-item_link {
-      padding: 22px 40px;
-    }
-    .ag-courses-item_date-box {
-      font-size: 16px;
-    }
-  }
+* {
+  box-sizing: border-box;
+}
+.page-contain {
+  display: flex;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  background: #2C2C2C;
+  font-family: 'Open Sans', sans-serif;
+}
+.data-card {
+  display: flex;
+  flex-direction: column;
+  width: 22em; /* Anchura fija */
+  min-height: 20.75em;
+  overflow: hidden;
+  border-radius: 0.5em;
+  text-decoration: none;
+  background: white;
+  margin: 1em;
+  padding: 2.75em 2.5em;
+  box-shadow: 0 1.5em 2.5em -0.5em rgba(0, 0, 0, .1);
+  transition: transform 0.45s ease, background 0.45s ease;
+}
+.data-card h3 {
+  color: #2e3c40;
+  font-size: 25px;
+  line-height: 1;
+  padding-bottom: 0.5em;
+  margin: 0 0 0.142857143em;
+  border-bottom: 2px solid #753bbd;
+  transition: color 0.45s ease, border 0.45s ease;
+}
+.data-card p {
+  opacity: 0;
+  color: #fff;
+  font-weight: 600;
+  line-height: 1.8;
+  margin: 0 0 1.25em;
+  transform: translateY(-1em);
+  transition: opacity 0.45s ease, transform 0.5s ease;
+}
+.data-card .link-text {
+  display: block;
+  color: #753bbd;
+  font-size: 1.125em;
+  font-weight: 600;
+  line-height: 1.2;
+  margin: auto 0 0;
+  transition: color 0.45s ease;
+}
+.data-card:hover {
+  background: #753bbd;
+  transform: scale(1.02);
+}
+.data-card:hover h3 {
+  color: #fff;
+  border-bottom-color: #a754c4;
+}
+.data-card:hover h4 {
+  color: #fff;
+}
+.data-card:hover p {
+  opacity: 1;
+  transform: none;
+}
+.data-card:hover .link-text {
+  color: #fff;
+}
 
+/* Media query para dispositivos móviles con tamaño Movil L */
+@media screen and (max-width: 640px) {
+  .page-contain {
+    flex-direction: column;
+  }
+  .data-card {
+    margin: 1em 0;
+  }
+}
 
+@media screen and (max-width: 320px){
+  .data-card{
+    padding-left: 2rem;
+    height: 40px;
+    width: 280px;
+  }
+  
+}
 
-
-
+/* Media query para dispositivos tipo tablet */
+@media screen and (min-width: 641px) and (max-width: 768px) {
+  .data-card {
+    margin: 0em 0.5em; /* Margen reducido */
+    
+  }
+}
 
 
 </style>
+
+  
+  
+  
