@@ -171,7 +171,8 @@ export default {
         let day = this.matrix[this.matrix.length - 1][j]; // usamos this.matrix.length - 1 para acceder a la última tarea agregada
         let cell = document.createElement("div");
         cell.setAttribute("class", "cell");
-        cell.setAttribute("data-date",this.$refs.datesTransforming.parseDate(day));
+        cell.setAttribute("data-date", this.$refs.datesTransforming?.parseDate(day) || '');
+
         cell.innerHTML = "&nbsp;";
 
         if (

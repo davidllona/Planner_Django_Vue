@@ -28,7 +28,6 @@
     },
     methods: {
       listenToCreatePeriods() {
-        console.log(document);
         document.addEventListener("click", function (event) {
           if (event.target.classList.contains("cell")) {
             if (!event.target.querySelector(".period")) {
@@ -205,6 +204,7 @@
   
               if (!isBlocked) {
                 let newEndDay =  this.$refs.datesTransforming.addDaysToDate(startDay, distanceInCells);
+                console.log(this.$refs.datesTransforming.addDaysToDate(startDay, distanceInCells))
   
                 const mouseupHandler = () => {
                   // Actualiza el campo 'end' del objeto 'period' en la base de datos al soltar el click

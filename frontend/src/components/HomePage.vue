@@ -1,7 +1,8 @@
 <template>
+  
   <!-- CSS de Bootstrap -->
 <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> -->
-  <section class="page-contain">
+  <section id="home-page" class="page-contain">
     <a href="#" class="data-card">
       <h3>Tareas</h3>
       <p>Aqui podrás consultar tus tareas</p>
@@ -9,7 +10,7 @@
         Mas detalles
       </span>
     </a>
-    <a href="#" class="data-card">
+    <a href="#" class="data-card" @click="goToPlanner">
       <h3>Planner</h3>
       <p>Añade, borra y edita tus tareas</p>
       <span class="link-text">
@@ -25,15 +26,28 @@
       </span>
     </a>
   </section>
+  
 </template>
 
 <script>
+
 export default {
+  methods: {
+    goToPlanner() {
+      this.$router.push('/planner');
+    },
+    checkAuthentication() {
+  const token = localStorage.getItem('access_token');
+  return token !== null;
+}
+
+  }
   
 };
+
 </script>
 
-<style>
+<style scoped>
 * {
   box-sizing: border-box;
 }

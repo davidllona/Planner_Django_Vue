@@ -3,7 +3,6 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
   />
-  <div>
     <template v-if="loggedIn">
       <router-view></router-view>
     </template>
@@ -46,12 +45,10 @@
       </div>
       </div>
     </template>
-  </div>
 </template>
 
 <script>
 import axios from "axios";
-
 axios.defaults.headers.post["Content-Type"] = "application/json";
 
 export default {
@@ -62,6 +59,7 @@ export default {
       errorMessage: "",
       showPassword: false,
       loggedIn: false, // variable que indica si el usuario ha iniciado sesión
+    
     };
   },
   methods: {
@@ -73,8 +71,8 @@ export default {
       axios
         .post("http://localhost:8000/login/", data)
         .then((response) => {
-          console.log(response);
           if (response.data.success) {
+            console.log(response.data.token)
             console.log("Usuarioooooo: " + this.username + "" + this.password);
             this.loggedIn = true; // el usuario ha iniciado sesión
             this.$router.push("/home");
@@ -93,8 +91,7 @@ export default {
 </script>
 
 
-
-<style>
+<style >
 html {
   height: 100%;
 }
@@ -102,8 +99,8 @@ html {
 body {
   margin: 0;
   padding: 0;
-  font-family: sans-serif;
   background: linear-gradient(#141e30, #243b55);
+  font-family: sans-serif;
 }
 
 .login-container {
@@ -159,7 +156,7 @@ body {
 }
 
 .login-box .user-box input {
-  width: 100%;
+  width: 84%;
   padding: 10px 30px;
   font-size: 16px;
   color: #fff;

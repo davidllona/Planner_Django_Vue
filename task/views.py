@@ -231,3 +231,8 @@ class LoginView(View):
             return JsonResponse({'success': True})
         else:
             return JsonResponse({'success': False, 'error': 'Usuario o contraseña incorrectos.'})
+        
+        
+        
+        
+        
