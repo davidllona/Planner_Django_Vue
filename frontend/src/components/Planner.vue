@@ -31,6 +31,7 @@ export default {
   mounted() {
     this.getPeriods();
     this.drawPeriodTasks();
+
   },
   methods: {
     getPeriods() {

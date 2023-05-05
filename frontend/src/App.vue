@@ -3,95 +3,87 @@
     rel="stylesheet"
     href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
   />
-    <template v-if="loggedIn">
-      <router-view></router-view>
-    </template>
-    <template v-else>
-      <div class="login-container">
-      <div class="login-box">
-        <img
-          src="../src/assets/logo-practikalia-neg-fit.svg"
-          alt="Imagen practikalia"
-        />
-        <h3>LOGIN</h3>
-        <form @submit.prevent="login">
-          <div class="user-box">
-            <i id="user" class="fa fa-user"></i>
-            <input
-              type="text"
-              name="username"
-              v-model="username"
-              required=""
-              autocomplete="username"
-            />
-            <label>Usuario</label>
-          </div>
-          <div class="user-box">
-            <i id="lock" class="fa fa-lock"></i>
-            <input
-              name="password"
-              v-model="password"
-              v-bind:type="showPassword ? 'text' : 'password'"
-              required
-              autocomplete="current-password"
-            />
-            <label>Contraseña</label>
-            <i id="eye" class="fa fa-eye"></i>
-          </div>
-          <a class="forgot-pw" href="#">Recuperar contraseña</a>
-          <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
-          <button class="enter">Entrar</button>
-        </form>
-      </div>
-      </div>
-    </template>
+  <div class="login-container">
+    <div class="login-box">
+      <img
+        src="../src/assets/logo-practikalia-neg-fit.svg"
+        alt="Imagen practikalia"
+      />
+      <h3>LOGIN</h3>
+      <form @submit.prevent="login">
+        <div class="user-box">
+          <i id="user" class="fa fa-user"></i>
+          <input
+            type="text"
+            name="username"
+            v-model="username"
+            required=""
+            autocomplete="username"
+          />
+          <label>Usuario</label>
+        </div>
+        <div class="user-box">
+          <i id="lock" class="fa fa-lock"></i>
+          <input
+            name="password"
+            v-model="password"
+            type="password"
+            required
+            autocomplete="current-password"
+          />
+          <label>Contraseña</label>
+          <i id="eye" class="fa fa-eye"></i>
+        </div>
+        <a class="forgot-pw" href="#">Recuperar contraseña</a>
+        <div v-if="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+        <button class="enter">Entrar</button>
+      </form>
+    </div>
+  </div>
 </template>
 
 <script>
-import axios from "axios";
-axios.defaults.headers.post["Content-Type"] = "application/json";
+import auth from "../src/auth";
 
 export default {
-  data() {
-    return {
-      username: "",
-      password: "",
-      errorMessage: "",
-      showPassword: false,
-      loggedIn: false, // variable que indica si el usuario ha iniciado sesión
-    
-    };
+  data: () => ({
+    username: "",
+    password: "",
+    errorMessage: "",
+  }),
+  async created() {
+    const token = localStorage.getItem("token");
+    if (token) {
+      try {
+        await auth.checkToken(token);
+        this.$router.push("/home");
+      } catch (error) {
+        localStorage.removeItem("token");
+        console.log(error);
+      }
+    }
   },
   methods: {
-    login() {
-      const data = {
-        username: this.username,
-        password: this.password,
-      };
-      axios
-        .post("http://localhost:8000/login/", data)
-        .then((response) => {
-          if (response.data.success) {
-            console.log(response.data.token)
-            console.log("Usuarioooooo: " + this.username + "" + this.password);
-            this.loggedIn = true; // el usuario ha iniciado sesión
-            this.$router.push("/home");
-          } else {
-            console.log("Usuario: " + this.username + "" + this.password);
-            this.errorMessage =
-              "¡Oops!, inténtalo de nuevo, usuario/contraseña incorrectos";
-          }
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    async login() {
+      try {
+        const response = await auth.login(this.username, this.password);
+        const token = response.data.token;
+        await auth.setUserLogged(token); // esperar a que se establezca la cookie
+        console.log(response.data.token);
+        this.$router.push("/home");
+      } catch (error) {
+        console.log(error);
+        this.errorMessage = error.message;
+      }
     },
   },
 };
 </script>
 
 
-<style >
+<style>
 html {
   height: 100%;
 }
@@ -125,7 +117,6 @@ body {
   box-shadow: 0 15px 25px rgba(0, 0, 0, 0.6);
   border-radius: 10px;
   background-color: rgb(26 26 26 / 83%);
-  
 }
 .login-box #user {
   position: absolute;
@@ -189,7 +180,6 @@ body {
 .login-box .user-box input:focus {
   border-bottom-color: #fff;
 }
-
 
 .login-box .enter {
   position: relative;

@@ -15,7 +15,7 @@
   <script>
   import axios from "axios";
   import  DatesTransforming  from  "./DatesTools.vue";
-  export default {
+  export default{
     name: "PeriodManipulate",
     components: {
       DatesTransforming

@@ -30,7 +30,6 @@
 </template>
 
 <script>
-
 export default {
   methods: {
     goToPlanner() {
@@ -40,11 +39,9 @@ export default {
   const token = localStorage.getItem('access_token');
   return token !== null;
 }
-
   }
   
 };
-
 </script>
 
 <style scoped>
