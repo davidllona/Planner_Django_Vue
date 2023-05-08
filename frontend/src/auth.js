@@ -5,7 +5,7 @@ const ENDPOINT_PATH = "http://localhost:8000/";
 
 export default {
   setUserLogged(token) {
-    Cookies.set("sessionid", token);
+    Cookies.set("sessionid", token, { expires: 1 });
   },
   getUserLogged() {
     return Cookies.get("sessionid");
@@ -14,9 +14,12 @@ export default {
     const user = { username, password };
     return axios.post(ENDPOINT_PATH + "login/", user).then((response) => {
       const token = response.data.token;
+
+      // Guardar el token en la cookie de sesión
       this.setUserLogged(token);
+
       return response;
     });
   },
-  
 };
+

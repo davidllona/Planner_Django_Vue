@@ -7,10 +7,11 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.http import JsonResponse
 import json
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.contrib.auth import authenticate, login
+import jwt
+from django.conf import settings
 
-# Create your views here.
 class HomeView(View):
     def get(self, request):
         return render(request,'index.html')
@@ -228,11 +229,10 @@ class LoginView(View):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return JsonResponse({'success': True})
+            token = jwt.encode({'username': username}, settings.SECRET_KEY, algorithm='HS256').decode('utf-8')
+
+            return JsonResponse({'success': True, 'token': token})
         else:
-            return JsonResponse({'success': False, 'error': 'Usuario o contraseña incorrectos.'})
+            return JsonResponse({'success': False, 'error': 'Usuario o contraseña incorrectos.'})    
         
-        
-        
-        
-        
+
