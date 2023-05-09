@@ -18,7 +18,7 @@
       </span>
     </a>
 
-    <a href="#" class="data-card">
+    <a href="#" class="data-card" @click="goToReports">
       <h3>Estadísticas</h3>
       <p>Las estadisiticas sobre tus tareas</p>
       <span class="link-text">
@@ -35,12 +35,15 @@ export default {
     goToPlanner() {
       this.$router.push('/planner');
     },
+    goToReports(){
+      this.$router.push('/report')
+    }
   }
   
 };
 </script>
 
-<style lang="sass">
+<style scoped lang="sass">
 $primary-color: #2C2C2C
 $secondary-color: #753bbd
 
