@@ -11,6 +11,7 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 import jwt
 from django.conf import settings
+from django.db.models import Count
 
 class HomeView(View):
     def get(self, request):
@@ -234,5 +235,29 @@ class LoginView(View):
             return JsonResponse({'success': True, 'token': token})
         else:
             return JsonResponse({'success': False, 'error': 'Usuario o contraseña incorrectos.'})    
-        
 
+class SearchTaskView(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(SearchTaskView, self).dispatch(request, *args, **kwargs)
+
+    def get(self, request):
+        tasks = Task.objects.all()
+        data = {'tasks': list(tasks.values())}
+        return JsonResponse(data, safe=False)
+
+    def post(self, request):
+        search_str = request.POST.get('searchText', None)
+        if search_str is not None:
+            tasks = Task.objects.filter(name__icontains=search_str)
+            data = {'tasks': list(tasks.values())}
+            return JsonResponse(data, safe=False)
+        return JsonResponse({'error': 'Invalid request'})
+
+
+class ColorsView(View):
+    def get(self, request):
+        colors = Period.objects.values('color').annotate(count=Count('color')).values('color').distinct().order_by('color')
+        color_list = [c['color'] for c in colors]
+        print(color_list)
+        return JsonResponse({'colors': color_list})

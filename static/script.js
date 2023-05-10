@@ -670,7 +670,6 @@ function listenToMoveRight() {
   });
 }
 
-
 function listenToMoveLeft() {
   $(document).on("mousedown", ".period.resizable .left-span", function (event) {
       let activePeriod = $(this).parent(".period");

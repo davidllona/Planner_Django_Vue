@@ -26,16 +26,12 @@ body {
   background: white;
 }
 
-
-
 .tasks-header {
-  height: 47px;
+  height: 48px;
   border-bottom: 1px solid #ececec; 
   text-align: center;
 }
-.task-periods{
-  color: #000000;
-}
+
 
 .header {
   display: inline-flex;
@@ -97,7 +93,7 @@ body {
 }
 
 .period {
-  background: #0F01FF;
+  background: red;
   width: auto;
   height: 19px;
   position: absolute;
@@ -123,9 +119,7 @@ body {
   bottom: 0;
   margin: auto;
 }
-.task-name{
-  color: #000000;
-}
+
 
 .right-span {
   width: 6px;
