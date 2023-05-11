@@ -1,12 +1,6 @@
 <template>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
-  />
-  <link
-    rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"/>
 
   <div class="navbarReport">
     <img src="../assets/logo-practikalia-neg-fit.svg" alt="" />
@@ -15,26 +9,10 @@
     <div class="filter">
       <!-- Buscador -->
       <div class="search-container">
-        <input
-          type="input"
-          class="search-input"
-          placeholder="Introduce el nombre de la tarea"
-          name="name"
-          id="name"
-          v-model="searchText"
-          @input="searchTasks"
-        />
-
+        <input type="input" class="search-input" placeholder="Introduce el nombre de la tarea" name="name" id="name" v-model="searchText" @input="searchTasks"/>
         <div class="search-results" v-if="tasksToShow.length">
           <ul>
-            <li
-              class="list-names-result"
-              v-for="task in tasksToShow"
-              :key="task.id"
-              @click="selectTask(task)"
-            >
-              {{ task.name }}
-            </li>
+            <li class="list-names-result" v-for="task in tasksToShow" :key="task.id" @click="selectTask(task)">{{ task.name }}</li>
           </ul>
         </div>
       </div>
@@ -44,37 +22,17 @@
         <div class="dropdown">
           <div class="dropdown__title" @click="toggleDropdown()">
             <div class="span-color-container">
-              <span
-                class="span-color"
-                v-for="color in selectedColors"
-                :key="color"
-                :style="{ backgroundColor: color }"
-              >
+              <span class="span-color" v-for="color in selectedColors" :key="color" :style="{ backgroundColor: color }">
                 <i class="fas fa-times" @click.stop="removeColor(color)"></i>
                 <span class="span-color-name">{{ color }}</span>
               </span>
             </div>
-            <span v-if="selectedColors.length === 0" class="span-color-name"
-              >Color</span
-            >
-            <i
-              id="icon-arrow"
-              :class="{
-                'fa-chevron-down': !dropdownOpen,
-                'fa-chevron-up': dropdownOpen,
-              }"
-              class="fas"
-            ></i>
+            <span v-if="selectedColors.length === 0" class="span-color-name">Color</span>
+            <i id="icon-arrow" :class="{   'fa-chevron-down': !dropdownOpen,   'fa-chevron-up': dropdownOpen, }" class="fas"></i>
           </div>
           <div class="dropdown__content" v-if="dropdownOpen">
             <div class="dropdown__content-options color-grid-container">
-              <div
-                class="color-box"
-                v-for="color in colors"
-                :key="color"
-                :style="{ backgroundColor: color }"
-                @click="toggleColorSelection(color)"
-                :class="{ selected: isSelected(color) }"
+              <div class="color-box" v-for="color in colors" :key="color" :style="{ backgroundColor: color }" @click="toggleColorSelection(color)" :class="{ selected: isSelected(color) }"
               ></div>
             </div>
           </div>
@@ -85,67 +43,46 @@
       <div class="date-picker">
         <div class="date-picker__from">
           <span class="span-time">Desde</span>
-          <input
-            type="text"
-            id="date-input-from"
-            class="from-date-input"
-            placeholder="--.--.--"
-          />
+          <input type="text" id="date-input-from" class="from-date-input" placeholder="--.--.--" v-model="fromDate" />
         </div>
         <div class="date-picker__to">
           <span class="span-time">Hasta</span>
-          <input
-            type="text"
-            id="date-input-to"
-            class="to-date-input"
-            placeholder="--.--.--"
-          />
+          <input type="text" id="date-input-to" class="to-date-input" placeholder="--.--.--" v-model="toDate" />
         </div>
       </div>
 
       <!-- Informes -->
-<div class="dropdown-color-container">
-  <div class="dropdown">
-    <div class="dropdown__title">
-      <span class="span-color-name">Informes</span>
-      <i
-        id="icon-arrow"
-        :class="{
-          'fa-chevron-down': !dropdownOpenInforms,
-          'fa-chevron-up': dropdownOpenInforms,
-        }"
-        class="fas"
-        @click="toggleDropdownInforms"
-      ></i>
-      <div class="dropdown__content" v-if="dropdownOpenInforms">
-        <div class="checkbox-container dropdown"> <!-- Agregar clase dropdown -->
-          <label for="detallado-checkbox">Detallado</label>
-          <input
-            type="checkbox"
-            id="detallado-checkbox"
-            class="checkbox-pink"
-          />
-        </div>
-        <div class="checkbox-container dropdown"> <!-- Agregar clase dropdown -->
-          <label for="agregado-checkbox">Agregado</label>
-          <input
-            type="checkbox"
-            id="agregado-checkbox"
-            class="checkbox-pink"
-          />
+      <div class="informs-container">
+        <div class="informs">
+          <div class="informs__title">
+            <span class="span-informs-name">Informes</span>
+           
+            <div class="informs__content">
+              <div class="checkbox-container_informs"> <!-- Agregar clase dropdown -->
+                <label for="detallado-checkbox">Detallado</label>
+                <input type="checkbox" v-model="detailed" id="detallado-checkbox" class="checkbox-pink"/>
+              </div>
+              <div class="checkbox-container_informs"> <!-- Agregar clase dropdown -->
+                <label for="agregado-checkbox">Agregado</label>
+                <input type="checkbox" v-model="aggregated" id="agregado-checkbox" class="checkbox-pink"/>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </div>
-</div>
 
-      
-
-      <button class="button">Mostrar</button>
-
+      <button class="button"  @click="showReport(), showFilters()">Mostrar</button>
       <button class="button-download">Descargar</button>
     </div>
-    <div class="content"></div>
+
+
+    <!-- Contenido de la pagina-->
+    <div class="content">
+      <div class="tittle">
+      <h1>Bienvenido </h1>
+      <h4>Aquí podrás buscar y ver todo lo relacionado con tus tareas </h4>
+    </div>
+    </div>
   </div>
 </template>
 
@@ -163,9 +100,14 @@ export default {
       dropdownOpen: false,
       selectedColors: [],
       tasksToShow: [],
-      dropdownOpenInforms: false,
+      fromDate: null,
+      toDate: null,
+      detailed: false,
+      aggregated:false,
+      nombreUsuario: ""
     };
   },
+  
   methods: {
     async getColors() {
       try {
@@ -186,7 +128,6 @@ export default {
       } else {
         this.selectedColors.splice(index, 1);
       }
-      console.log(this.selectedColors);
     },
     isSelected(color) {
       return this.selectedColors.indexOf(color) !== -1;
@@ -200,9 +141,6 @@ export default {
     toggleDropdown() {
       this.dropdownOpen = !this.dropdownOpen;
     },
-    toggleDropdownInforms() { // Nuevo método
-    this.dropdownOpenInforms = !this.dropdownOpenInforms;
-  },
     /*Buscador*/
     async getTasksNames() {
       try {
@@ -215,7 +153,6 @@ export default {
     selectTask(task) {
       this.searchText = task.name;
       this.tasksToShow = [];
-      console.log(this.searchText);
     },
     searchTasks() {
       const tasks = this.tasks;
@@ -226,20 +163,43 @@ export default {
       );
       this.tasksToShow = filteredTasks;
     },
+    showFilters() {
+      const name = this.searchText;
+      const colors = this.selectedColors.join(", ");
+      
+      const detailedReport = document.getElementById("detallado-checkbox").checked;
+      const aggregatedReport = document.getElementById("agregado-checkbox").checked;
+
+      console.log(`Name: ${name}`);
+      console.log(`Colors: ${colors}`);
+      console.log('From date:', this.fromDate)
+      console.log('To date:', this.toDate)
+      console.log(`Detailed report: ${detailedReport}`);
+      console.log(`Aggregated report: ${aggregatedReport}`);
+    },
+    showReport() {
+      if (this.detailed) {
+        this.$router.push('/detailed-inform')
+      } else if (this.aggregated) {
+        this.$router.push({ name: 'report-aggregated' });
+      } else {
+        console.log('Seleccione un informe para mostrar');
+      }
+    },  
   },
   mounted() {
-    flatpickr(".from-date-input", {
-      dateFormat: "d/m/Y",
-      onClose: function (selectedDates) {
-        console.log(selectedDates); // Mostrar fecha seleccionada en la consola
-      },
+    flatpickr('.from-date-input', {
+      dateFormat: 'd/m/Y',
+      onClose: function(selectedDates) {
+        this.fromDate = selectedDates[0]
+      }.bind(this)
     });
 
-    flatpickr(".to-date-input", {
-      dateFormat: "d/m/Y",
-      onClose: function (selectedDates) {
-        console.log(selectedDates); // Mostrar fecha seleccionada en la consola
-      },
+    flatpickr('.to-date-input', {
+      dateFormat: 'd/m/Y',
+      onClose: function(selectedDates) {
+        this.toDate = selectedDates[0]
+      }.bind(this)
     });
 
     this.getColors();
@@ -267,7 +227,7 @@ img {
 }
 .filter {
   height: 100%;
-  width: 25%;
+  width: 20%;
   background-color: #566062;
 }
 .content {
@@ -459,25 +419,35 @@ label{
   background-color: black;
   
 }
-
-/*Boton mostrar*/
-.button {
-  display: inline-block;
-  padding: 10px 50px;
-  font-size: 15px;
-  cursor: pointer;
-  text-align: center;
-  text-decoration: none;
-  outline: none;
-  color: #fff;
+.informs {
+  padding: 15px;
+}
+.informs-container {
+  width: 80%;
   background-color: #3e494d;
-  border: none;
-  border-radius: 15px;
-  box-shadow: 0 4px #363636;
   margin-top: 40px;
   margin-left: 9%;
-  display: flex;
 }
+.infroms__title {
+  display: inline-block;
+  width: 100%;
+}
+
+.checkbox-container_informs{
+  padding: 5px;
+  padding-left: 15px;
+}
+
+.span-informs-name {
+  color: white;
+  margin-left: 15px;
+}
+.informs__content{
+  margin-top: 5px;
+}
+
+
+/*Boton mostrar*/
 
 .button:active {
   background-color: #0069b4;
@@ -554,7 +524,23 @@ label{
     margin-bottom: 10px;
     flex-direction: column;
   }
-
+  .button {
+    display: inline-block;
+    padding: 10px 50px;
+    font-size: 15px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #fff;
+    background-color: #3e494d;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px #363636;
+    margin-top: 40px;
+    margin-left: 9%;
+    display: flex;
+}
   .date-picker__from {
     margin-bottom: 10px;
   }
@@ -572,18 +558,46 @@ label{
   }
 }
 
+/*Content*/
+.tittle{
+  margin-top: 40px;
+  margin-left: 5%;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Estilos para dispositivos con pantalla grande */
 @media only screen and (min-width: 768px) {
   /* Filtro */
   .filter {
     height: 100%;
-    width: 25%;
+    width: 20%;
     background-color: #566062;
   }
 
   /* Contenido */
   .content {
-    width: 75%;
+    width: 80%;
     height: 100%;
   }
 
@@ -593,11 +607,19 @@ label{
     margin-left: 9%;
   }
 
+
+
   /* Dropdown */
   .dropdown-color-container {
     width: 80%;
     margin-left: 9%;
   }
+  .color-grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-gap: 8px;
+    margin-top: 4px;
+}
 
   /* Calendar */
   .date-picker {
@@ -605,13 +627,47 @@ label{
     margin-left: 9%;
     display: flex;
   }
-
+  .button {
+    display: inline-block;
+    padding: 10px 40px;
+    font-size: 15px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #fff;
+    background-color: #3e494d;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px #363636;
+    margin-top: 40px;
+    margin-left: 9%;
+    display: flex;
+}
   #date-input-from {
     margin-right: 10px;
   }
 }
 
+/*Moviles*/
 @media (max-width: 767px) {
+  .button {
+    display: inline-block;
+    padding: 10px 50px;
+    font-size: 15px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    outline: none;
+    color: #fff;
+    background-color: #3e494d;
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px #363636;
+    margin-top: 40px;
+    margin-left: 9%;
+    display: flex;
+}
   .flatpickr-calendar {
     position: static !important;
     display: flex;
@@ -626,7 +682,12 @@ label{
   .flatpickr-days {
     width: 100%;
   }
-
+  .color-grid-container {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-gap: 8px;
+    margin-top: 4px;
+}
   .flatpickr-innerContainer {
     width: 100%;
   }

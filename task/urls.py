@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import HomeView, GetTasksFromDBView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor, PeriodDeleteView,UpdatePeriodEnd, UpdatePeriodStart,UpdateTaskPosition, UpdatePeriodView, TaskListView, LoginView, SearchTaskView, ColorsView
+from .views import HomeView, GetTasksFromDBView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor, PeriodDeleteView,UpdatePeriodEnd, UpdatePeriodStart,UpdateTaskPosition, UpdatePeriodView, TaskListView, LoginView, SearchTaskView, ColorsView, SearchPeriodsView
 app_name = 'task'
 
 urlpatterns = [
@@ -18,6 +18,8 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('search-task/', SearchTaskView.as_view(), name='search_task'),
     path('api/colors/', ColorsView.as_view(), name='colors'),
+    path('get_current_user/', ColorsView.as_view(), name='colors'),
+    path('periods/', SearchPeriodsView.as_view(), name='periods'),
 
     
 ]

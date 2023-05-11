@@ -3,6 +3,7 @@ import LoginPage from "@/components/LoginPage.vue"
 import PlannerVue from "@/components/Planner.vue";
 import HomePage from "@/components/HomePage.vue";
 import ReportPageVue from '@/components/ReportPage.vue';
+import DetailedReportPage from '@/components/DetailedReportPage.vue'
 const routes = [
   {
     path: "/",
@@ -27,7 +28,12 @@ const routes = [
     path: "/report",
     name: "Report",
     component: ReportPageVue,
-  }
+  },
+  {
+    path: "/detailed-inform",
+    name: "DetailedReport",
+    component: DetailedReportPage,
+  },
 ];
 
 const router = createRouter({
