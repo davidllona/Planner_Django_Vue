@@ -179,13 +179,19 @@ export default {
     },
     showReport() {
       if (this.detailed) {
-        this.$router.push('/detailed-inform')
+        this.$router.push({
+      name: 'DetailedReport',
+      query: {
+        name: this.searchText,
+        colors: this.selectedColors.join(','),
+        fromDate: this.fromDate,
+        toDate: this.toDate,
+      },
+      });
       } else if (this.aggregated) {
         this.$router.push({ name: 'report-aggregated' });
-      } else {
-        console.log('Seleccione un informe para mostrar');
       }
-    },  
+    }, 
   },
   mounted() {
     flatpickr('.from-date-input', {

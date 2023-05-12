@@ -19,7 +19,7 @@ urlpatterns = [
     path('search-task/', SearchTaskView.as_view(), name='search_task'),
     path('api/colors/', ColorsView.as_view(), name='colors'),
     path('get_current_user/', ColorsView.as_view(), name='colors'),
-    path('periods/', SearchPeriodsView.as_view(), name='periods'),
+    path('search-periods/', SearchPeriodsView.as_view(), name='periods'),
 
     
 ]

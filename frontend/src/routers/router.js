@@ -33,6 +33,12 @@ const routes = [
     path: "/detailed-inform",
     name: "DetailedReport",
     component: DetailedReportPage,
+    props: (route) => ({
+      name: route.query.name,
+      colors: route.query.colors,
+      fromDate: route.query.fromDate,
+      toDate: route.query.toDate,
+    }),
   },
 ];
 

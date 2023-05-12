@@ -261,34 +261,43 @@ class ColorsView(View):
         print(color_list)
         return JsonResponse({'colors': color_list})
 
-from django.db.models import Q
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.views import View
-from .models import Period
+from django.http import JsonResponse
+from datetime import datetime
 
-@method_decorator(csrf_exempt, name='dispatch')
+
 class SearchPeriodsView(View):
-    def post(self, request):
-        color = request.POST.get('color', None)
-        name = request.POST.get('name', None)
-        start_date = request.POST.get('start_date', None)
-        end_date = request.POST.get('end_date', None)
-        
-        periods = Period.objects.all()
-        if color:
-            periods = periods.filter(task__color=color)
-        if name:
-            periods = periods.filter(task__name__icontains=name)
-        if start_date:
-            periods = periods.filter(end_time__gte=start_date)
-        if end_date:
-            periods = periods.filter(start_time__lte=end_date)
-        
-        data = {'periods': list(periods.values())}
-        return JsonResponse(data)
-    
     def get(self, request):
-        return JsonResponse({'error': 'Invalid request method'})
+        name = request.GET.get('name')
+        colors = request.GET.getlist('color')
+        start_date_str = request.GET.get('start_date')
+        end_date_str = request.GET.get('end_date')
+
+        periods = Period.objects.all()
+        if name:
+            periods = periods.filter(name=name)
+        if colors:
+            periods = periods.filter(color__in=colors)
+        if start_date_str and end_date_str:
+            start_date = datetime.strptime(start_date_str, '%d/%m/%Y')
+            end_date = datetime.strptime(end_date_str, '%d/%m/%Y')
+            periods = periods.filter(start__gte=start_date, end__lte=end_date)
+            print(start_date_str, end_date_str, start_date, end_date)
+        else:
+            print(start_date_str, end_date_str)
+
+        data = {'periods': list(periods.values('id', 'name', 'color', 'start', 'end'))}
+        return JsonResponse(data)
+
+
+
+     
+       
+
+
+
+
+
+
+
 
