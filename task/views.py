@@ -5,13 +5,13 @@ from django.views import View
 from .models import Task, Period
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.http import JsonResponse
 import json
 from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 import jwt
 from django.conf import settings
 from django.db.models import Count
+from datetime import datetime
 
 class HomeView(View):
     def get(self, request):
@@ -92,6 +92,31 @@ class UpdateTaskName(View):
         except Exception as e:
             message = str(e)
             return JsonResponse({'message': message})
+        
+class UpdatePeriodName(View):
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return super(UpdatePeriodName, self).dispatch(request, *args, **kwargs)
+    
+    def post(self, request):
+        data = request.body
+        data = json.loads(data)
+        period_id = data.get('id')
+        period_name = data.get('name')
+        
+        try:
+            period = Period.objects.get(id=period_id)
+            period.name = period_name  # set the name field to the received name value
+            period.save()
+            message = f'Period name updated to {period_name}'
+            return JsonResponse({'message': message})
+        except Period.DoesNotExist:
+            message = f'Period with id {period_id}'
+        except Exception as e:
+            message = str(e)
+            return JsonResponse({'message': message})
+
+
 
 class PeriodDeleteView(View):
     @method_decorator(csrf_exempt)
@@ -261,9 +286,7 @@ class ColorsView(View):
         print(color_list)
         return JsonResponse({'colors': color_list})
 
-from django.views import View
-from django.http import JsonResponse
-from datetime import datetime
+
 
 
 class SearchPeriodsView(View):
@@ -278,16 +301,26 @@ class SearchPeriodsView(View):
             periods = periods.filter(name=name)
         if colors:
             periods = periods.filter(color__in=colors)
+        
+        start_date = None  # Inicializar start_date fuera del bloque condicional
+        end_date = None  # Inicializar end_date fuera del bloque condicional
+        
         if start_date_str and end_date_str:
-            start_date = datetime.strptime(start_date_str, '%d/%m/%Y')
-            end_date = datetime.strptime(end_date_str, '%d/%m/%Y')
+            start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+            end_date = datetime.strptime(end_date_str, '%Y-%m-%d')
             periods = periods.filter(start__gte=start_date, end__lte=end_date)
             print(start_date_str, end_date_str, start_date, end_date)
         else:
             print(start_date_str, end_date_str)
-
+        
+        print(start_date_str)
+        print(end_date_str)
+        print(start_date)
+        print(end_date)
+        
         data = {'periods': list(periods.values('id', 'name', 'color', 'start', 'end'))}
         return JsonResponse(data)
+
 
 
 

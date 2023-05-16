@@ -30,16 +30,10 @@ const routes = [
     component: ReportPageVue,
   },
   {
-    path: "/detailed-inform",
     name: "DetailedReport",
     component: DetailedReportPage,
-    props: (route) => ({
-      name: route.query.name,
-      colors: route.query.colors,
-      fromDate: route.query.fromDate,
-      toDate: route.query.toDate,
-    }),
   },
+  
 ];
 
 const router = createRouter({
