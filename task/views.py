@@ -285,14 +285,36 @@ class ColorsView(View):
         color_list = [c['color'] for c in colors]
         print(color_list)
         return JsonResponse({'colors': color_list})
+    
+    
+class SearchPeriodsTasksView(View):
+    def get(self, request):
+        search_str = request.GET.get('search_str')
+        
+        # Search tasks containing the search query and their associated periods
+        tasks = Task.objects.filter(name__icontains=search_str)
+        task_data = []
+        for task in tasks:
+            periods = Period.objects.filter(task_id=task.id)
+            for period in periods:
+                task_data.append({
+                    'id': task.id,
+                    'name': task.name,
+                    'period_id': period.id,
+                    'period_name': period.name,
+                    'period_color': period.color,
+                    'period_start': period.start,
+                    'period_end': period.end,
+                })
 
-
-
+        data = {'tasks': task_data}
+        print(task_data)
+        return JsonResponse(data)    
 
 class SearchPeriodsView(View):
     def get(self, request):
         name = request.GET.get('name')
-        colors = request.GET.getlist('color')
+        colors = request.GET.getlist('colors')
         start_date_str = request.GET.get('start_date')
         end_date_str = request.GET.get('end_date')
 

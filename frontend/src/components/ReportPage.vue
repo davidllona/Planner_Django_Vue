@@ -18,14 +18,8 @@
      v-model="searchText"
      @input="searchTasks"
     />
-    <div class="search-results" v-if="tasksToShow.length">
-     <ul>
-      <li class="list-names-result" v-for="task in tasksToShow" :key="task.id" @click="selectTask(task)">
-       {{ task.name }}
-      </li>
-     </ul>
-    </div>
    </div>
+   <!-- /Buscador -->
 
    <!-- Colores -->
    <div class="dropdown-color-container">
@@ -74,35 +68,42 @@
       <span class="span-informs-name">Informes</span>
 
       <div class="informs__content">
-       <div class="checkbox-container_informs">
+       <div class="radio-container_informs">
         <!-- Agregar clase dropdown -->
-        <label for="detallado-checkbox">Detallado</label>
-        <input type="checkbox" v-model="detailed" id="detallado-checkbox" class="checkbox-pink" />
+        <label for="detallado-radio">Detallado</label>
+        <input type="radio" v-model="reportType" value="detailed" id="detallado-radio" class="radio" />
        </div>
-       <div class="checkbox-container_informs">
+       <div class="radio-container_informs">
         <!-- Agregar clase dropdown -->
-        <label for="agregado-checkbox">Agregado</label>
-        <input type="checkbox" v-model="aggregated" id="agregado-checkbox" class="checkbox-pink" />
+        <label for="agregado-radio">Agregado</label>
+        <input type="radio" v-model="reportType" value="aggregated" id="agregado-radio" class="radio" />
        </div>
       </div>
      </div>
     </div>
    </div>
 
-   <button class="button" @click="showDetailedReport = true; showFilters()">Mostrar</button>
+   <button
+    class="button"
+    @click="
+     showDetailedReport = true;
+     showFilters();
+    "
+   >
+    Mostrar
+   </button>
    <button class="button-download">Descargar</button>
   </div>
 
   <!-- Contenido de la pagina-->
   <div class="content">
    <div class="tittle">
-    
     <h1 v-if="!showDetailedReport">Bienvenido</h1>
     <h1 v-else class="detailed">Detallado</h1>
     <h4 v-if="!showDetailedReport">Aquí podrás buscar y ver todo lo relacionado con tus tareas</h4>
    </div>
    <div class="table">
-    <DetailedReportPage v-if="showDetailedReport" />
+    <DetailedReportPage ref="detailedReport"/>
    </div>
   </div>
  </div>
@@ -115,25 +116,28 @@ import axios from "axios";
 import DetailedReportPage from "@/components/DetailedReportPage.vue";
 
 export default {
-  components: {
-    DetailedReportPage,
-  },
+ components: {
+  DetailedReportPage,
+ },
  data() {
   return {
-   tasks: [],
-   searchText: "",
-   colors: [],
-   dropdownOpen: false,
-   selectedColors: [],
-   tasksToShow: [],
-   fromDate: null,
-   toDate: null,
-   detailed: false,
-   aggregated: false,
-   nombreUsuario: "",
-   showDetailedReport: false,
+    tasks: [],
+    searchText: "",
+    dropdownOpen: false,
+    selectedColors: [], // Agrega esta línea
+    tasksToShow: [],
+    detailed: false,
+    aggregated: false,
+    nombreUsuario: "",
+    showDetailedReport: false,
+    showAgreggatedReport: false,
+    reportType: "",
+    name: "",
+    colors: [],
+    fromDate: null,
+    toDate: null,
   };
- },
+},
 
  methods: {
   async getColors() {
@@ -182,19 +186,32 @@ export default {
    this.tasksToShow = [];
   },
   searchTasks() {
-   const tasks = this.tasks;
-   const filteredTasks = tasks.filter(
-    (task) => task.name.toLowerCase().includes(this.searchText.toLowerCase()) && task.name.trim() !== ""
-   );
-   this.tasksToShow = filteredTasks;
+   const searchStr = this.searchText.trim().toLowerCase();
+   if (searchStr === "") {
+    this.tasksToShow = [];
+    return;
+   }
+
+   axios
+    .get("http://localhost:8000/search-periods-tasks/", {
+     params: {
+      search_str: searchStr,
+     },
+    })
+    .then((response) => {
+     this.tasksToShow = response.data.tasks;
+     this.periodsToShow = response.data.periods; // Agrega esta línea para obtener los períodos asociados
+    })
+    .catch((error) => {
+     console.log(error);
+    });
   },
 
   showFilters() {
    const name = this.searchText;
    const colors = this.selectedColors.join(", ");
-
-   const detailedReport = document.getElementById("detallado-checkbox").checked;
-   const aggregatedReport = document.getElementById("agregado-checkbox").checked;
+   const detailedReport = this.reportType === "detailed";
+   const aggregatedReport = this.reportType === "aggregated";
 
    console.log(`Name: ${name}`);
    console.log(`Colors: ${colors}`);
@@ -203,16 +220,12 @@ export default {
    console.log(`Detailed report: ${detailedReport}`);
    console.log(`Aggregated report: ${aggregatedReport}`);
 
-   const queryParams = {
-    name: this.searchText,
-    colors: this.selectedColors.join(","),
-    fromDate: this.fromDate,
-    toDate: this.toDate,
-  };
 
-  this.$router.replace({ name: "Report", query: queryParams });
 
-  this.showDetailedReport = true;
+   this.$refs.detailedReport.getPeriods(name, colors, this.fromDate, this.toDate);
+   //  this.$router.replace({ name: "Report", query: queryParams });
+
+   this.showDetailedReport = true;
   },
  },
  mounted() {
@@ -248,18 +261,31 @@ img {
  margin-top: 1%;
  height: 60%;
 }
-.detailed{
-    text-align: center;
+.detailed {
+ text-align: center;
+}
+
+.table {
+ height: 500px; /* Reemplaza 500px con el height deseado */
+ overflow-x: auto;
+ position: relative;
+ width: max-content;
+ margin: 0 auto;
 }
 .container {
  width: 100%;
  height: calc(100vh - 77px);
  display: flex;
+ overflow-y: hidden;
 }
 .filter {
  height: 100%;
  width: 20%;
  background-color: #566062;
+}
+.table-container {
+ height: 100%; /* Ajusta la altura del contenedor de la tabla según tus necesidades */
+ overflow-x: auto;
 }
 .content {
  width: 80%;
@@ -445,9 +471,6 @@ input {
 /*Informes*/
 label {
  color: white;
-}
-#detallado-checkbox input:checked ~ .checkmark {
- background-color: black;
 }
 .informs {
  padding: 15px;

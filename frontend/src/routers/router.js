@@ -4,6 +4,7 @@ import PlannerVue from "@/components/Planner.vue";
 import HomePage from "@/components/HomePage.vue";
 import ReportPageVue from '@/components/ReportPage.vue';
 import DetailedReportPage from '@/components/DetailedReportPage.vue'
+import AggregatedPage from '@/components/AggregatedPage.vue'
 const routes = [
   {
     path: "/",
@@ -32,6 +33,10 @@ const routes = [
   {
     name: "DetailedReport",
     component: DetailedReportPage,
+  },
+  {
+    name: "AggregatedPage",
+    component: AggregatedPage,
   },
   
 ];
