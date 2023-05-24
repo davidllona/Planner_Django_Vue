@@ -1,104 +1,55 @@
 <template>
-    <div class="table-responsive">
-      <table class="table-fill">
-        <thead>
-          <tr>
-            <th class="text-left">ID</th>
-            <th class="text-left">Nombre</th>
-            <th class="text-left">Desde</th>
-            <th class="text-left">Hasta</th>
-            <th class="text-left">Color</th>
-          </tr>
-        </thead>
-        <tbody class="table-hover">
-          <tr v-for="period in filteredPeriods" :key="period.id">
-            <td class="text-left">{{ period.id }}</td>
-            <td class="text-left">{{ period.name }}</td>
-            
-            <td class="text-left">{{ formatDate(period.start) }}</td>
-            <td class="text-left">{{ formatDate(period.end) }}</td>
-            <td class="text-left">
-              <div class="color-span" :style="{ backgroundColor: period.color }"></div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </template>
-  
-  <script>
-  import axios from "axios";
-  
-  export default {
-    computed: {
-      name() {
-        return this.$route.query.name || "";
-      },
-      colors() {
-        return this.$route.query.colors || "";
-      },
-      fromDate() {
-        return this.$route.query.fromDate || "";
-      },
-      toDate() {
-        return this.$route.query.toDate || "";
-      },
-      filteredPeriods() {
-        return this.filterPeriods();
-      },
-    },
-    data() {
-      return {
-        periods: [],
-        showDetailedReport: false,
-      };
-    },
-    created() {
-      this.getPeriods();
-    },
-    methods: {
-      getPeriods() {
-        const params = {
-          name: this.name,
-          color: this.colors.split(","),
-          start_date: this.fromDate,
-          end_date: this.toDate,
-        };
-        axios.get("http://localhost:8000/search-periods/", { params }).then((response) => {
-          this.periods = response.data.periods;
-        });
-      },
-      filterPeriods() {
-    let filteredPeriods = this.periods;
-    if (this.name) {
-      filteredPeriods = filteredPeriods.filter((period) => period.name.includes(this.name));
-    }
-    if (this.colors) {
-      const selectedColors = this.colors.split(",");
-      filteredPeriods = filteredPeriods.filter((period) => selectedColors.includes(period.color));
-    }
-    if (this.fromDate) {
-      const fromDateObj = new Date(this.fromDate);
-      filteredPeriods = filteredPeriods.filter((period) => new Date(period.start) >= fromDateObj);
-    }
-    if (this.toDate) {
-      const toDateObj = new Date(this.toDate);
-      filteredPeriods = filteredPeriods.filter((period) => new Date(period.end) <= toDateObj);
-    }
-    
-    // Ordenar los períodos por ID de mayor a menor
-    filteredPeriods.sort((a, b) => b.id - a.id);
-    
-    const result = filteredPeriods.length > 0 ? filteredPeriods : [];
-    return result;
+  <div class="table-responsive">
+    <table class="table-fill">
+      <thead>
+        <tr>
+          <th class="text-left">Número de tareas</th>
+          <th class="text-left">Duración</th>
+          <th class="text-left">Periodos/Tarea</th>
+          <th class="text-left">Duración máx.</th>
+          <th class="text-left">Duración mín.</th>
+        </tr>
+      </thead>
+      <tbody class="table-hover">
+        <tr v-if="aggregatedData">
+          <td class="text-left">{{ aggregatedData.num_periods }}</td>
+          <td class="text-left">{{ aggregatedData.avg_duration }}</td>
+          <td class="text-left">{{ aggregatedData.avg_periods_per_task }}</td>
+          <td class="text-left">{{ aggregatedData.max_duration }}</td>
+          <td class="text-left">{{ aggregatedData.min_duration }}</td>
+        </tr>
+      </tbody>      
+    </table>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+export default {
+  data() {
+    return {
+      aggregatedData: null,
+    };
   },
-      formatDate(date) {
-        const options = { day: "2-digit", month: "2-digit", year: "2-digit" };
-        return new Date(date).toLocaleDateString(undefined, options);
-      },
+  mounted() {
+    this.getAggregatedData();
+  },
+  methods: {
+    getAggregatedData() {
+      // Realizar una solicitud HTTP al método del backend para obtener los datos agregados
+      axios
+        .get("http://localhost:8000/aggregated-page/")  // Actualiza la URL según tu configuración
+        .then((response) => {
+          this.aggregatedData = response.data;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     },
-  };
-  </script>
+  },
+};
+</script>
+
   <style>
   @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100);
   
@@ -133,11 +84,11 @@
    background: white;
    border-radius: 3px;
    border-collapse: collapse;
-   height: 320px;
    margin: auto;
-   max-width: 600px;
+   max-width: 90%;
    padding: 5px;
    width: 100%;
+   height: 200px;
    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
    animation: float 5s infinite;
   }
@@ -154,7 +105,6 @@
    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
    vertical-align: middle;
   }
-  
   th:first-child {
    border-top-left-radius: 3px;
   }
@@ -189,6 +139,7 @@
   
   tr:nth-child(odd) td {
    background: #ebebeb;
+   text-align: center;
   }
   
   tr:nth-child(odd):hover td {

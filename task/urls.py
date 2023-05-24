@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import HomeView, GetTasksFromDBView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor, PeriodDeleteView,UpdatePeriodEnd, UpdatePeriodStart,UpdateTaskPosition, UpdatePeriodView, TaskListView, LoginView, ColorsView, SearchPeriodsView, UpdatePeriodName, SearchTaskView, SearchPeriodsTasksView
+from .views import HomeView, GetTasksFromDBView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor, PeriodDeleteView,UpdatePeriodEnd, UpdatePeriodStart,UpdateTaskPosition, UpdatePeriodView, TaskListView, LoginView, SearchTaskView, ColorsView, SearchPeriodsView, UpdatePeriodName,SearchPeriodsTasksView,AggregatedPageView, LogoutView
+from .views import CompletedPeriodsView, RemainingPeriodsView
 app_name = 'task'
 
 urlpatterns = [
@@ -17,13 +18,15 @@ urlpatterns = [
     path('update_period/', UpdatePeriodView.as_view(), name='update_period'),
     path('api/tasks/', TaskListView.as_view(), name='task-list'),
     path('login/', LoginView.as_view(), name='login'),
-    path('search-task/', SearchTaskView.as_view(), name='search_task'),
     path('api/colors/', ColorsView.as_view(), name='colors'),
-    path('get_current_user/', ColorsView.as_view(), name='colors'),
-    path('search-periods/', SearchPeriodsView.as_view(), name='periods'),
+    path('search-task/', SearchTaskView.as_view(), name='search_task'),
     path('search-periods-tasks/', SearchPeriodsTasksView.as_view(), name='periods_tasks'),
+    path('search-periods/', SearchPeriodsView.as_view(), name='periods'),
+    path('aggregated-page/', AggregatedPageView.as_view(), name='aggregated-page'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+     path('api/completed-periods/', CompletedPeriodsView.as_view(), name='completed-periods'),
+    path('api/remaining-periods/', RemainingPeriodsView.as_view(), name='remaining-periods'),
 
     
 ]
-
 

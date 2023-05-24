@@ -30,73 +30,76 @@
 import axios from "axios";
 
 export default {
-  computed: {
+  
+ computed: {
   name() {
-    return this.$route.query.name || ""; // Cambia this.name por this.$route.query.name
+   return this.$route.query.name || "";
   },
   colors() {
-    return this.$route.query.colors || ""; // Cambia this.colors por this.$route.query.colors
+   return this.$route.query.colors || [];
   },
   fromDate() {
-    return this.$route.query.fromDate || ""; // Cambia this.fromDate por this.$route.query.fromDate
+   return this.$route.query.fromDate || "";
   },
   toDate() {
-    return this.$route.query.toDate || ""; // Cambia this.toDate por this.$route.query.toDate
+   return this.$route.query.toDate || "";
   },
   filteredPeriods() {
-    return this.filterPeriods();
+   return this.filterPeriods(this.name, this.colors, this.fromDate, this.toDate);
   },
-},
+ },
  data() {
   return {
    periods: [],
    showDetailedReport: false,
+   detailedData: [],
   };
  },
- created() {},
+ 
  methods: {
-  getPeriods(name, colors, fromDate, toDate) {
-   axios
-    .get("http://localhost:8000/search-periods/", {
-     params: {
-      name,
-      colors,
-      fromDate,
-      toDate,
-     },
-    })
+  getPeriods(filters) {
+  const params = new URLSearchParams();
+  params.set('name', filters.name || '');
+  filters.colors.forEach(color => params.append('colors', color));
+  params.set('start_date', filters.fromDate || '');
+  params.set('end_date', filters.toDate || '');
+
+  axios
+    .get("http://localhost:8000/search-periods/", { params })
     .then((response) => {
-     this.periods = response.data.periods;
+      this.periods = response.data.periods;
+    })
+    .catch((error) => {
+      console.log(error);
     });
-    console.log(name)
-    console.log(colors)
-    console.log(fromDate)
-    console.log(toDate)
-  },
-  filterPeriods(name, colors, fromDate, toDate) {
-  let filteredPeriods = this.periods;
-  if (name) {
-    filteredPeriods = filteredPeriods.filter((period) => period.name.includes(name));
+
+},
+
+
+filterPeriods(filters) {
+  let filteredPeriods = this.periods.slice();
+
+  if (filters.name) {
+    filteredPeriods = filteredPeriods.filter((period) => period.name.includes(filters.name));
   }
-  if (colors) {
-    const selectedColors = colors.split(", ");
-    filteredPeriods = filteredPeriods.filter((period) => selectedColors.includes(period.color));
+  if (filters.colors && filters.colors.length > 0) {
+    filteredPeriods = filteredPeriods.filter((period) => filters.colors.includes(period.color));
   }
-  if (fromDate) {
-    const fromDateObj = new Date(fromDate);
+
+  if (filters.fromDate) {
+    const fromDateObj = new Date(filters.fromDate);
     filteredPeriods = filteredPeriods.filter((period) => new Date(period.start) >= fromDateObj);
   }
-  if (toDate) {
-    const toDateObj = new Date(toDate);
+  if (filters.toDate) {
+    const toDateObj = new Date(filters.toDate);
     filteredPeriods = filteredPeriods.filter((period) => new Date(period.end) <= toDateObj);
   }
 
-  // Ordenar los períodos por ID de mayor a menor
   filteredPeriods.sort((a, b) => b.id - a.id);
 
-  const result = filteredPeriods.length > 0 ? filteredPeriods : [];
-  return result;
+  return filteredPeriods;
 },
+
 
   formatDate(date) {
    const options = { day: "2-digit", month: "2-digit", year: "2-digit" };
@@ -105,7 +108,7 @@ export default {
  },
 };
 </script>
-<style>
+<style scoped>
 @import url(https://fonts.googleapis.com/css?family=Roboto:400,500,700,300,100);
 
 body {
@@ -141,7 +144,7 @@ div.table-title {
  border-collapse: collapse;
  height: 320px;
  margin: auto;
- max-width: 600px;
+ max-width: 90%;
  padding: 5px;
  width: 100%;
  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
@@ -237,7 +240,7 @@ th.text-right {
 }
 
 td.text-left {
- text-align: left;
+ text-align: center;
 }
 
 td.text-center {

@@ -12,6 +12,14 @@ import jwt
 from django.conf import settings
 from django.db.models import Count
 from datetime import datetime
+from django.db.models import Avg, Count, Max, Min, F, ExpressionWrapper, DurationField
+from datetime import timedelta
+from django.db.models import Q
+from django.contrib.auth import logout
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.utils.translation import gettext as _
+from django.shortcuts import get_object_or_404
 
 class HomeView(View):
     def get(self, request):
@@ -115,8 +123,6 @@ class UpdatePeriodName(View):
         except Exception as e:
             message = str(e)
             return JsonResponse({'message': message})
-
-
 
 class PeriodDeleteView(View):
     @method_decorator(csrf_exempt)
@@ -261,6 +267,13 @@ class LoginView(View):
         else:
             return JsonResponse({'success': False, 'error': 'Usuario o contraseña incorrectos.'})    
 
+class ColorsView(View):
+    def get(self, request):
+        colors = Period.objects.values('color').annotate(count=Count('color')).values('color').distinct().order_by('color')
+        color_list = [c['color'] for c in colors]
+        print(color_list)
+        return JsonResponse({'colors': color_list})
+   
 class SearchTaskView(View):
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
@@ -277,25 +290,17 @@ class SearchTaskView(View):
             tasks = Task.objects.filter(name__icontains=search_str)
             data = {'tasks': list(tasks.values())}
             return JsonResponse(data, safe=False)
-        return JsonResponse({'error': 'Invalid request'})
-
-class ColorsView(View):
-    def get(self, request):
-        colors = Period.objects.values('color').annotate(count=Count('color')).values('color').distinct().order_by('color')
-        color_list = [c['color'] for c in colors]
-        print(color_list)
-        return JsonResponse({'colors': color_list})
-    
+        return JsonResponse({'error': 'Invalid request'})    
     
 class SearchPeriodsTasksView(View):
     def get(self, request):
         search_str = request.GET.get('search_str')
-        
+
         # Search tasks containing the search query and their associated periods
         tasks = Task.objects.filter(name__icontains=search_str)
         task_data = []
         for task in tasks:
-            periods = Period.objects.filter(task_id=task.id)
+            periods = Period.objects.filter(task_id=task.id, name__icontains=search_str)
             for period in periods:
                 task_data.append({
                     'id': task.id,
@@ -306,13 +311,14 @@ class SearchPeriodsTasksView(View):
                     'period_start': period.start,
                     'period_end': period.end,
                 })
-
+    
         data = {'tasks': task_data}
-        print(task_data)
-        return JsonResponse(data)    
+        return JsonResponse(data)
+    
 
 class SearchPeriodsView(View):
-    def get(self, request):
+    
+     def get(self, request):
         name = request.GET.get('name')
         colors = request.GET.getlist('colors')
         start_date_str = request.GET.get('start_date')
@@ -320,7 +326,7 @@ class SearchPeriodsView(View):
 
         periods = Period.objects.all()
         if name:
-            periods = periods.filter(name=name)
+            periods = periods.filter(Q(name__icontains=name))
         if colors:
             periods = periods.filter(color__in=colors)
         
@@ -339,17 +345,94 @@ class SearchPeriodsView(View):
         print(end_date_str)
         print(start_date)
         print(end_date)
+        print(colors)
+        
         
         data = {'periods': list(periods.values('id', 'name', 'color', 'start', 'end'))}
+        print(data)
         return JsonResponse(data)
 
 
 
 
+
+
+class AggregatedPageView(View):
+    def get(self, request):
+        # Cálculo de la duración total y el número de periodos
+        total_duration = timedelta()
+        num_periods = 0
+
+        for periodo in Period.objects.all():
+            duration = periodo.end - periodo.start
+            if duration.total_seconds() == 0:
+                duration = timedelta(days=1)
+            total_duration += duration
+            num_periods += 1
+
+        # Cálculo de la duración media
+        avg_duration = total_duration / num_periods if num_periods > 0 else timedelta()
+
+        # Cálculo de la duración máxima y mínima
+        max_duration = Period.objects.aggregate(
+            max_duration=Max(ExpressionWrapper(F('end') - F('start'), output_field=DurationField()))
+        )['max_duration']
+        max_duration = max_duration or timedelta()
+
+        min_duration = Period.objects.aggregate(
+            min_duration=Min(ExpressionWrapper(F('end') - F('start'), output_field=DurationField()))
+        )['min_duration']
+        min_duration = min_duration or timedelta(days=1)
+
+        # Cálculo del número de periodos
+        num_periods = Period.objects.count()
+
+        # Cálculo del número medio de periodos por tarea
+        avg_periods_per_task = Period.objects.values('task_id').annotate(count=Count('task_id')).aggregate(
+            avg_periods_per_task=Avg('count')
+        )['avg_periods_per_task']
+
+        # Convertir la duración media de los periodos a un formato más legible
+        avg_duration_str = str(avg_duration.days) + ' ' + _('día(s)') + ', ' + str(avg_duration.seconds // 3600) + ':' + str((avg_duration.seconds // 60) % 60).zfill(2) + ':' + str(avg_duration.seconds % 60).zfill(2)
+
+        # Construir el diccionario de respuesta
+        data = {
+            'avg_duration': avg_duration_str,
+            'num_periods': num_periods,
+            'avg_periods_per_task': avg_periods_per_task,
+            'max_duration': str(max_duration.days) + ' ' + _('día(s)'),
+            'min_duration': str(min_duration.days) + ' ' + _('día(s)'),
+        }
+
+        return JsonResponse(data)
+
+class LogoutView(APIView):
+    def post(self, request):
+        logout(request)
+        return Response(status=200)
+
+
+
+from datetime import date
+from django.db.models import Q
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from .models import Task
+
+class CompletedPeriodsView(APIView):
+    def get(self, request):
+        today = date.today()
+        completed_periods = Period.objects.filter(end_date__lt=today).count()
+        return Response({'completedPeriods': completed_periods})
+
+class RemainingPeriodsView(APIView):
+    def get(self, request):
+        today = date.today()
+        remaining_periods = Period.objects.filter(Q(end_date__gte=today) | Q(end_date=None)).count()
+        return Response({'remainingPeriods': remaining_periods})
+
      
        
-
-
 
 
 
