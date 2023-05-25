@@ -6,7 +6,8 @@ class Period(models.Model):
      color=models.CharField(max_length=7, default="blue")
      start=models.DateField()
      end=models.DateField()
-     task = models.ForeignKey("Task", null=True ,related_name="period", on_delete=models.CASCADE)
+     task = models.ForeignKey("Task", null=True, related_name="period", on_delete=models.CASCADE)
+
      
 
 class Task(models.Model):

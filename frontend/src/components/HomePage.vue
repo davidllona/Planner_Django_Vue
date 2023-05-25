@@ -2,10 +2,10 @@
   
   <!-- CSS de Bootstrap -->
 <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous"> -->
-  <section id="home-page" class="page-contain">
-    <a href="#" class="data-card">
-      <h3>Tareas</h3>
-      <p>Aqui podrás consultar tus tareas</p>
+  <section id="home-page" class="page-contain"> <!--@click="goToStatistics"-->
+    <a href="#" class="data-card" @click="goToStatistics">
+      <h3>Estadísticas</h3>
+      <p>Aqui podrás ver graficas y estadísticas sobre tus tareas</p>
       <span class="link-text">
         Mas detalles
       </span>
@@ -19,8 +19,8 @@
     </a>
 
     <a href="#" class="data-card" @click="goToReports">
-      <h3>Estadísticas</h3>
-      <p>Las estadisiticas sobre tus tareas</p>
+      <h3>Tareas</h3>
+      <p>Aqui podrás ver informes detallados o agregados sobre tus tareas, además, podrás flitrarlas según su color, su nombre o su fecha </p>
       <span class="link-text">
         Mas detalles
       </span>
@@ -36,7 +36,10 @@ export default {
       this.$router.push('/planner');
     },
     goToReports(){
-      this.$router.push('/report')
+      this.$router.push('/report');
+    },
+    goToStatistics(){
+      this.$router.push('/statistics')
     }
   }
   

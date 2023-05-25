@@ -5,6 +5,7 @@ import HomePage from "@/components/HomePage.vue";
 import ReportPageVue from '@/components/ReportPage.vue';
 import DetailedReportPage from '@/components/DetailedReportPage.vue'
 import AggregatedPage from '@/components/AggregatedPage.vue'
+import Statistics from '@/components/StatisticsPage.vue'
 const routes = [
   {
     path: "/",
@@ -29,6 +30,11 @@ const routes = [
     path: "/report",
     name: "Report",
     component: ReportPageVue,
+  },
+  {
+    path: "/statistics",
+    name: "Statistics",
+    component: Statistics,
   },
   {
     name: "DetailedReport",

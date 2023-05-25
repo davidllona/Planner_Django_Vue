@@ -20,6 +20,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils.translation import gettext as _
 from django.shortcuts import get_object_or_404
+from datetime import date
 
 class HomeView(View):
     def get(self, request):
@@ -313,8 +314,7 @@ class SearchPeriodsTasksView(View):
                 })
     
         data = {'tasks': task_data}
-        return JsonResponse(data)
-    
+        return JsonResponse(data)  
 
 class SearchPeriodsView(View):
     
@@ -351,11 +351,6 @@ class SearchPeriodsView(View):
         data = {'periods': list(periods.values('id', 'name', 'color', 'start', 'end'))}
         print(data)
         return JsonResponse(data)
-
-
-
-
-
 
 class AggregatedPageView(View):
     def get(self, request):
@@ -411,14 +406,6 @@ class LogoutView(APIView):
         logout(request)
         return Response(status=200)
 
-
-
-from datetime import date
-from django.db.models import Q
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from .models import Task
-
 class CompletedPeriodsView(APIView):
     def get(self, request):
         today = date.today()
@@ -431,9 +418,26 @@ class RemainingPeriodsView(APIView):
         remaining_periods = Period.objects.filter(Q(end_date__gte=today) | Q(end_date=None)).count()
         return Response({'remainingPeriods': remaining_periods})
 
+class GetPeriodCount(View):
+    def get(self, request):
+        period_count = Period.objects.count()
+        return JsonResponse({'period_count': period_count})
      
-       
 
+       
+from django.http import JsonResponse
+from django.views import View
+
+class GetPeriodsByTask(View):
+    def get(self, request):
+        periods_by_task = {}  # Dictionary to store periods by task
+        tasks = Task.objects.all()
+
+        for task in tasks:
+            periods = [task.period.filter(start__month=i).count() for i in range(1, 13)]
+            periods_by_task[task.name] = periods
+
+        return JsonResponse({'periods_by_task': periods_by_task})
 
 
 

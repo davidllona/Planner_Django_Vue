@@ -16,7 +16,11 @@
       days: [],
     };
   },
+  mounted() {
+    this.loadData();
+  },
     methods: {
+      
       addDaysToDate(startDate, numDays) {
         let endDate = new Date(startDate);
         let numWeekendDays = 0;
