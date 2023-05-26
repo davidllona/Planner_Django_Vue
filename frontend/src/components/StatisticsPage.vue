@@ -24,8 +24,8 @@ export default {
  },
  methods: {
   drawChart(periodsData) {
-   const width = 600;
-   const height = 400;
+   const width = 800;
+   const height = 600;
    const margin = { top: 20, right: 10, bottom: 30, left: 50 };
    const chartWidth = width - margin.left - margin.right;
    const chartHeight = height - margin.top - margin.bottom;
