@@ -16,9 +16,6 @@
       days: [],
     };
   },
-  mounted() {
-    this.loadData();
-  },
     methods: {
       
       addDaysToDate(startDate, numDays) {

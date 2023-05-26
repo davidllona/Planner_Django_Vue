@@ -409,35 +409,57 @@ class LogoutView(APIView):
 class CompletedPeriodsView(APIView):
     def get(self, request):
         today = date.today()
-        completed_periods = Period.objects.filter(end_date__lt=today).count()
-        return Response({'completedPeriods': completed_periods})
+        completed_periods = Period.objects.filter(end__lt=today).count()
+        return Response({'completedTasks': completed_periods})  # Cambiado el nombre a 'completedTasks'
 
 class RemainingPeriodsView(APIView):
     def get(self, request):
         today = date.today()
-        remaining_periods = Period.objects.filter(Q(end_date__gte=today) | Q(end_date=None)).count()
-        return Response({'remainingPeriods': remaining_periods})
+        remaining_periods = Period.objects.filter(Q(end__gte=today) | Q(end=None)).count()
+        return Response({'remainingPeriods': remaining_periods})  # Cambiado el nombre a 'remainingPeriods'
 
-class GetPeriodCount(View):
-    def get(self, request):
-        period_count = Period.objects.count()
-        return JsonResponse({'period_count': period_count})
-     
-
-       
+import datetime
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-from django.views import View
+from .models import Task
+import datetime
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from django.http import JsonResponse
+from .models import Task, Period
 
-class GetPeriodsByTask(View):
+class GetPeriodsCount(View):
     def get(self, request):
-        periods_by_task = {}  # Dictionary to store periods by task
-        tasks = Task.objects.all()
+        periods = Period.objects.select_related('task').annotate(month=TruncMonth('start')).values('month', 'task__id', 'task__name', 'task__position', 'color').annotate(count=Count('id'))
 
-        for task in tasks:
-            periods = [task.period.filter(start__month=i).count() for i in range(1, 13)]
-            periods_by_task[task.name] = periods
+        periods_data = {}
 
-        return JsonResponse({'periods_by_task': periods_by_task})
+        for entry in periods:
+            month = entry['month'].strftime('%b')
+            task_id = entry['task__id']
+            task_name = entry['task__name']
+            task_position = entry['task__position']
+            color = entry['color']
+            count = entry['count']
+
+            if month not in periods_data:
+                periods_data[month] = []
+
+            periods_data[month].append({
+                'task_id': task_id,
+                'task_name': task_name,
+                'task_position': task_position,
+                'color': color,
+                'count': count,
+            })
+
+        return JsonResponse({'periods_data': periods_data})
+
+
+
+
+
 
 
 
