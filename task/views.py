@@ -422,7 +422,7 @@ import datetime
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from django.http import JsonResponse
-from .models import Task
+from .models import Task, Period
 import datetime
 from django.db.models import Count
 from django.db.models.functions import TruncMonth
@@ -453,11 +453,33 @@ class GetPeriodsCount(View):
                 'color': color,
                 'count': count,
             })
-
         return JsonResponse({'periods_data': periods_data})
 
 
 
+
+from django.db.models import Avg
+from .models import Period
+
+
+class AveragePeriodView(View):
+    def get(self, request):
+        average_period = Period.objects.values('task_id').annotate(period_count=Count('task_id')).aggregate(avg_period=Avg('period_count'))
+        return JsonResponse({'average_period': average_period['avg_period']})
+
+
+# views.py
+
+from django.db.models import Avg
+from django.http import JsonResponse
+from django.views import View
+from .models import Period
+
+class CalculateAveragePoints(View):
+    def get(self, request):
+        average_points = Period.objects.values('month').annotate(average_x=Avg('x'), average_y=Avg('y')).order_by('month')
+        average_points = {data['month']: {'x': data['average_x'], 'y': data['average_y']} for data in average_points}
+        return JsonResponse({'average_points': average_points})
 
 
 
