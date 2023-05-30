@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import HomeView, GetTasksFromDBView, PeriodCreateView,GetPeriodsFromDBView,UpdateTaskName,UpdatePeriodColor, PeriodDeleteView,UpdatePeriodEnd, UpdatePeriodStart,UpdateTaskPosition, UpdatePeriodView, TaskListView, LoginView, SearchTaskView, ColorsView, SearchPeriodsView, UpdatePeriodName,SearchPeriodsTasksView,AggregatedPageView, LogoutView
-from .views import CompletedPeriodsView, RemainingPeriodsView,GetPeriodsCount,AveragePeriodView, CalculateAveragePoints 
+from .views import CompletedPeriodsView, RemainingPeriodsView,GetPeriodsCount,AveragePeriodView, CalculateAverage 
 app_name = 'task'
 
 urlpatterns = [
@@ -28,7 +28,7 @@ urlpatterns = [
     path('api/remaining-periods/', RemainingPeriodsView.as_view(), name='remaining-periods'),
     path('get-periods-count/', GetPeriodsCount.as_view(), name='get-periods-count'),
     path('get-average-periods/', AveragePeriodView.as_view(), name='get-average-periods'),
-    path('get-average-points/', CalculateAveragePoints.as_view(), name='get-average-points'),
+    path('get-average/', CalculateAverage.as_view(), name='get-average'),
     
     
     

@@ -10,7 +10,6 @@ from django.shortcuts import render
 from django.contrib.auth import authenticate, login
 import jwt
 from django.conf import settings
-from django.db.models import Count
 from datetime import datetime
 from django.db.models import Avg, Count, Max, Min, F, ExpressionWrapper, DurationField
 from datetime import timedelta
@@ -21,6 +20,8 @@ from rest_framework.response import Response
 from django.utils.translation import gettext as _
 from django.shortcuts import get_object_or_404
 from datetime import date
+from decimal import Decimal
+from django.db.models.functions import TruncMonth
 
 class HomeView(View):
     def get(self, request):
@@ -418,68 +419,77 @@ class RemainingPeriodsView(APIView):
         remaining_periods = Period.objects.filter(Q(end__gte=today) | Q(end=None)).count()
         return Response({'remainingPeriods': remaining_periods})  # Cambiado el nombre a 'remainingPeriods'
 
-import datetime
-from django.db.models import Count
-from django.db.models.functions import TruncMonth
-from django.http import JsonResponse
-from .models import Task, Period
-import datetime
-from django.db.models import Count
-from django.db.models.functions import TruncMonth
-from django.http import JsonResponse
-from .models import Task, Period
-
 class GetPeriodsCount(View):
     def get(self, request):
-        periods = Period.objects.select_related('task').annotate(month=TruncMonth('start')).values('month', 'task__id', 'task__name', 'task__position', 'color').annotate(count=Count('id'))
+        periods = Period.objects.select_related('task').annotate(month=TruncMonth('start')).values('month', 'task__id', 'task__name', 'task__position').annotate(count=Count('id'))
 
         periods_data = {}
+        
+        manual_colors = ['#cee7fe', '#b4dbfd', '#97d0fc', '#77c4fb', '#4cb9fa', '#4397cc', '#39779f', '#2f5875', '#233b4d', '#172129']  # Colores manuales
+
+        month_names = {
+            'Jan': 'Ene',
+            'Feb': 'Feb',
+            'Mar': 'Mar',
+            'Apr': 'Abr',
+            'May': 'May',
+            'Jun': 'Jun',
+            'Jul': 'Jul',
+            'Aug': 'Ago',
+            'Sep': 'Sep',
+            'Oct': 'Oct',
+            'Nov': 'Nov',
+            'Dec': 'Dic',
+        }
 
         for entry in periods:
             month = entry['month'].strftime('%b')
+            month_spanish = month_names[month]
             task_id = entry['task__id']
             task_name = entry['task__name']
             task_position = entry['task__position']
-            color = entry['color']
             count = entry['count']
 
-            if month not in periods_data:
-                periods_data[month] = []
+            if month_spanish not in periods_data:
+                periods_data[month_spanish] = []
 
-            periods_data[month].append({
+            color = manual_colors[(task_id - 1) % len(manual_colors)]  # Obtener color de la lista de colores manuales
+            periods_data[month_spanish].append({
                 'task_id': task_id,
                 'task_name': task_name,
                 'task_position': task_position,
-                'color': color,
                 'count': count,
+                'color': color,
             })
+            
         return JsonResponse({'periods_data': periods_data})
 
-
-
-
-from django.db.models import Avg
-from .models import Period
 
 
 class AveragePeriodView(View):
     def get(self, request):
         average_period = Period.objects.values('task_id').annotate(period_count=Count('task_id')).aggregate(avg_period=Avg('period_count'))
         return JsonResponse({'average_period': average_period['avg_period']})
-
-
-# views.py
-
-from django.db.models import Avg
-from django.http import JsonResponse
-from django.views import View
-from .models import Period
-
-class CalculateAveragePoints(View):
+    
+class CalculateAverage(View):
     def get(self, request):
-        average_points = Period.objects.values('month').annotate(average_x=Avg('x'), average_y=Avg('y')).order_by('month')
-        average_points = {data['month']: {'x': data['average_x'], 'y': data['average_y']} for data in average_points}
-        return JsonResponse({'average_points': average_points})
+        queryset = Period.objects.annotate(
+            month=TruncMonth('start')
+        ).values('month').annotate(
+            count=Count('*'),
+            distinct_count=Count('task_id', distinct=True)
+        ).values('month', 'count', 'distinct_count').order_by('month')
+
+        results = [
+            {
+                'month': result['month'].strftime('%Y-%m-%d'),
+                'average': Decimal(result['count']) / Decimal(result['distinct_count'])
+            }
+            for result in queryset
+        ]
+
+        return JsonResponse({'average_data': results})
+
 
 
 
