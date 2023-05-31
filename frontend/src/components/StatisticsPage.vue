@@ -1,31 +1,32 @@
 <template>
- <div class="chart-container">
-  <svg id="chart"></svg>
- </div>
+  <div class="chart-container">
+    <svg id="chart"></svg>
+  </div>
 </template>
 
 <script>
 import * as d3 from "d3";
 import axios from "axios";
-export default {
- data() {
-  return {
-   tooltip: null,
-  };
- },
- mounted() {
-  axios
-   .get("http://localhost:8000/get-periods-count/")
-   .then((response) => {
-    const periodsData = response.data.periods_data;
-    console.log(periodsData);
 
-    this.getAveragePeriods(periodsData);
-   })
-   .catch((error) => {
-    console.error("Error al obtener el número de períodos:", error);
-   });
- },
+export default {
+  data() {
+    return {
+      tooltip: null,
+    };
+  },
+  mounted() {
+    axios
+      .get("http://localhost:8000/get-periods-count/")
+      .then((response) => {
+        const periodsData = response.data.periods_data;
+        console.log(periodsData);
+
+        this.getAveragePeriods(periodsData);
+      })
+      .catch((error) => {
+        console.error("Error al obtener el número de períodos:", error);
+      });
+  },
  methods: {
   getAveragePeriods(periodsData) {
    axios
@@ -80,9 +81,9 @@ export default {
   },
 
   drawChart(formattedData, averagePeriod) {
-   const width = 800;
-   const height = 600;
-   const margin = { top: 20, right: 10, bottom: 30, left: 50 };
+   const width = 600;
+   const height = 400;
+   const margin = { top: 20, right: 10, bottom: 30, left: 10 };
    const chartWidth = width - margin.left - margin.right;
    const chartHeight = height - margin.top - margin.bottom;
 
@@ -146,8 +147,8 @@ export default {
     .append("text")
     .attr("class", "y-axis-label")
     .attr("font-size", "12px")
-    .attr("x", margin.left * 2.1)
-    .attr("margin-bottom", "5px")
+    .attr("x", margin.left * 11)
+    .attr("margin-bottom", "40px")
     .style("text-anchor", "middle")
     .text("Máximo número de periodos en un mes");
 
@@ -294,9 +295,18 @@ export default {
  stroke: black;
 }
 .chart-container {
- display: flex;
- justify-content: center;
- align-items: center;
- margin-top: 10%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 10%;
 }
+
+.chart-container svg {
+  background-color: #fff;
+  border-radius: 8px;
+  margin-left: 20px;
+  box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
 </style>
