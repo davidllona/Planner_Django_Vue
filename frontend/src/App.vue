@@ -1,5 +1,4 @@
 <template>
-  
   <div id="app">
     <router-view/>
   </div>
@@ -9,7 +8,7 @@
 import auth from "../src/auth";
 
 export default {
-  async created() {
+  async mounted() {
     const currentPath = window.location.pathname;
     console.log(currentPath)
     if (auth.getUserLogged()) {
@@ -20,4 +19,3 @@ export default {
   },
 };
 </script>
-
